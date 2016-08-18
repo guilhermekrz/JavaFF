@@ -28,21 +28,15 @@
 
 package javaff;
 
-import javaff.data.PDDLPrinter;
 import javaff.data.UngroundProblem;
 import javaff.data.GroundProblem;
 import javaff.data.Plan;
 import javaff.data.TotalOrderPlan;
-import javaff.data.TimeStampedPlan;
-import javaff.parser.PDDL21parser;
+import javaff.parser.parser21.PDDL21parser;
 import javaff.planning.State;
 import javaff.planning.TemporalMetricState;
-import javaff.planning.RelaxedTemporalMetricPlanningGraph;
 import javaff.planning.HelpfulFilter;
 import javaff.planning.NullFilter;
-import javaff.scheduling.Scheduler;
-import javaff.scheduling.JavaFFScheduler;
-import javaff.search.Search;
 import javaff.search.BestFirstSearch;
 import javaff.search.EnforcedHillClimbingSearch;
 
