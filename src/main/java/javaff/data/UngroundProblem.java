@@ -63,6 +63,8 @@ public class UngroundProblem
 	public Map funcValues = new Hashtable();                // Maps functions onto numbers (NamedFunction => BigDecimal)
 	public GroundCondition goal;
 
+	public GroundCondition constraints;                     // Constraints for this problem
+
 	public Metric metric;
 
 	public Map staticPropositionMap = new Hashtable();      // (PredicateName => Set (Proposition))

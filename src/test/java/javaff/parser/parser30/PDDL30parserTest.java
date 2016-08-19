@@ -22,9 +22,15 @@ public class PDDL30parserTest {
 	}
 
 	@Test
-	public void testRovers() {
+	public void testRovers1() {
 		UngroundProblem ungroundProblem = PDDL30parser.parseFiles(new File("pddl/pddl30/rovers/QualitativePreferences/domain.pddl"), new File("pddl/pddl30/rovers/QualitativePreferences/p01.pddl"));
-		assertEquals(5, ungroundProblem.actions.size());
+		assertEquals(9, ungroundProblem.actions.size());
+	}
+
+	@Test
+	public void testRovers2() {
+		UngroundProblem ungroundProblem = PDDL30parser.parseFiles(new File("pddl/pddl30/rovers/QualitativePreferences/domain.pddl"), new File("pddl/pddl30/rovers/QualitativePreferences/p02.pddl"));
+		assertEquals(9, ungroundProblem.actions.size());
 	}
 
 }

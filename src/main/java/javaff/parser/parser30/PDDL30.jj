@@ -9,7 +9,7 @@ options
 
 PARSER_BEGIN(PDDL30parser)
 
-package javaff.data.parser.parser30;
+package javaff.parser.parser30;
 
 import javaff.data.*;
 import javaff.data.strips.*;
@@ -38,6 +38,7 @@ public class PDDL30parser
 
     public static UngroundProblem parseFiles(File pDomainFile, File pProblemFile)
     {
+        UP = new UngroundProblem();
 		boolean probsuc = false;
 		boolean suc = parseDomainFile(pDomainFile);
 		if (suc) probsuc = parseProblemFile(pProblemFile);
@@ -76,7 +77,7 @@ public class PDDL30parser
 		else System.out.println("Parsing of Domain file "+pFile+" failed");
 		return req;
     }
-    
+
     private static boolean parseProblemFile(File pFile)
     {
 		boolean probsuc = true;
@@ -108,24 +109,24 @@ public class PDDL30parser
 		else System.out.println("Parsing Problem file "+pFile+" failed");
 		return probsuc;
     }
-	
+
 	private class TypedList
 	{
 		public List objects = new ArrayList();
 		public Map types = new Hashtable();    // Maps strings onto Types
-		
+
 		public void add(String s)
 		{
 			objects.add(s);
 			types.put(s,SimpleType.rootType);
 		}
-	
+
 		public void add(String s, Type t)
 		{
 			objects.add(s);
 			types.put(s,t);
 		}
-	}		
+	}
 }
 
 PARSER_END(PDDL30parser)
@@ -149,10 +150,12 @@ TOKEN:
 |   < GOAL: ":goal" >
 |   < INIT: ":init" >
 |   < METRIC: ":metric" >
+|   < CONSTRAINTS: ":constraints" >
+|   < PREFERENCE: "preference" >
 |   < PROBLEM: "problem" >
 |   < REQUIREMENTS: ":requirements" >
-|   < REQUIREMENT_LABELS: ":typing" | ":strips" | ":fluents" | ":durative-actions" | ":duration-inequalities" >
-|   < NON_HANDLED_LABELS: ":negative-preconditions" | ":disjunctive-preconditions" | ":existential-preconditions" | "universal-preconditions" | "quantified-preconditions" | ":conditional-effects" | ":adl" | ":derived-predicates" | ":timed-initial-literals">
+|   < REQUIREMENT_LABELS: ":typing" | ":strips" | ":fluents" | ":durative-actions" | ":duration-inequalities" | ":preferences" | ":negative-preconditions" >
+|   < NON_HANDLED_LABELS: ":disjunctive-preconditions" | ":existential-preconditions" | "universal-preconditions" | "quantified-preconditions" | ":conditional-effects" | ":adl" | ":derived-predicates" | ":timed-initial-literals">
 |   < TYPES: ":types" >
 |   < EITHER: "either" >
 |   < CONSTANTS: ":constants" >
@@ -186,13 +189,30 @@ TOKEN:
 |   < MAXIMIZE: "maximize">
 |	< TOTAL_TIME: "total-time">
 |   < VAR: "?" <NAME> >
-|   < NUMBER: (["0"-"9"])+ ("." (["0"-"9"])+)? >
+}
+
+TOKEN :
+{
+	< ALWAYS : "always" >
+|	< SOMETIME : "sometime" >
+|	< WITHIN : "within" >
+|	< AT_MOST_ONCE : "at-most-once" >
+|	< SOMETIME_AFTER : "sometime-after" >
+|	< SOMETIME_BEFORE : "sometime-before" >
+|	< ALWAYS_WITHIN : "always-within" >
+|	< HOLD_DURING : "hold-during" >
+|	< HOLD_AFTER : "hold-after" >
+}
+
+TOKEN :
+{
+	< NUMBER: (["0"-"9"])+ ("." (["0"-"9"])+)? >
 |   < NAME: (["a"-"z", "_", "A"-"Z", "0"-"9", "-"])+ >
 }
 
-SPECIAL_TOKEN: 
+SPECIAL_TOKEN:
 {
-    <SINGLE_LINE_COMMENT: ";;" (~["\n", "\r"])* ("\n" | "\r" | "\r\n")>
+    <SINGLE_LINE_COMMENT: ";" (~["\n", "\r"])* ("\n" | "\r" | "\r\n")>
 }
 
 // ******************************************************************************
@@ -218,6 +238,7 @@ boolean parseDomain():
     (parsePredicatesDef())?
     (parseFunctionsDef())?
     (parseStructureDef())*
+    (parseConstraints())?
     <CLOSE>
     <EOF>
 	{return true;}
@@ -232,7 +253,10 @@ boolean parseRequireDef():
 	Token t;
 }
 {
-     <OPEN> <REQUIREMENTS> ( t = <REQUIREMENT_LABELS> {UP.requirements.add(t.toString());} | t = <NON_HANDLED_LABELS> {System.out.println("cannnot parse "+t.toString()); return false; })* <CLOSE> {return true;}
+     <OPEN>
+        <REQUIREMENTS>
+            ( t = <REQUIREMENT_LABELS> {UP.requirements.add(t.toString());} | t = <CONSTRAINTS> {UP.requirements.add(t.toString());} | t = <NON_HANDLED_LABELS> {System.out.println("cannnot parse "+t.toString()); return false; })*
+     <CLOSE> {return true;}
 }
 
 // ***************************************************
@@ -241,10 +265,10 @@ boolean parseRequireDef():
 void parseTypeDef():
 {
     Type t;
-	Set types;	
+	Set types;
 }
 {
-    <OPEN> <TYPES> 
+    <OPEN> <TYPES>
 	({types = new HashSet();}
 	(t=parsePrimitiveType()
 	{ types.add(t); }
@@ -315,10 +339,10 @@ TypedList parseTypedList():
     TypedList rList = new TypedList();
     TypedList tList;
 }
-{    
+{
     (((((t=<NAME>)|(t=<VAR>))
-    { strings.add(t.toString());  })+ 
-    <TYPE_IDENT> type=parseType() 
+    { strings.add(t.toString());  })+
+    <TYPE_IDENT> type=parseType()
     {
 		Iterator tit = strings.iterator();
 		while (tit.hasNext())
@@ -361,7 +385,7 @@ void parseConstantsDef():
 			c.setType((Type)tl.types.get(str));
 			UP.constants.add(c);
 			UP.constantMap.put(str, c);
-		}			
+		}
 	}
 }
 
@@ -382,8 +406,8 @@ void parsePredicate():
 	TypedList tl;
 }
 {
-    <OPEN> ps=parsePredicateSymbol() 
-	
+    <OPEN> ps=parsePredicateSymbol()
+
 	tl = parseTypedList()
 	{
 		Iterator it = tl.objects.iterator();
@@ -393,7 +417,7 @@ void parsePredicate():
 			Variable v =  new Variable(str);
 			v.setType((Type)tl.types.get(str));
 			ps.addVar(v);
-		}		
+		}
 		UP.predSymbols.add(ps);
 	}
 	<CLOSE>
@@ -404,7 +428,7 @@ PredicateSymbol parsePredicateSymbol():
     Token t;
 }
 {
-    t=<NAME> 
+    t=<NAME>
 	{
 		PredicateSymbol ps = (PredicateSymbol) UP.predSymbolMap.get(t.toString());
 		if (ps == null)
@@ -435,7 +459,7 @@ void parseActionDef():
 	Map varMap = new Hashtable();
 }
 {
-    <OPEN> <ACTION> a.name=parseOperatorName() <PARAMETERS> <OPEN> tl=parseTypedList() <CLOSE> 
+    <OPEN> <ACTION> a.name=parseOperatorName() <PARAMETERS> <OPEN> tl=parseTypedList() <CLOSE>
     {
 		UP.actions.add(a);
 		Iterator it = tl.objects.iterator();
@@ -474,7 +498,7 @@ void parseActionDefBody(UngroundInstantAction a, Map varMap):
 // **********************************
 
 // Map m is the variableMap
-// boolean ground is wheather it is ground or not (i.e. in an action or in the initial state)
+// boolean ground is whether it is ground or not (i.e. in an action or in the initial state)
 Condition parseGD(Map m, boolean ground):
 {
 	Literal p;
@@ -487,7 +511,6 @@ Condition parseGD(Map m, boolean ground):
 |	(<OPEN> <AND> {and = new AND();} (c = parseGD(m, ground) { and.add(c);} )* <CLOSE> {return and;})
 |	(c = parseFComp(m) {return c;})
 }
-
 
 Literal parseAtomicFormula(Map m, boolean ground):
 {
@@ -573,8 +596,8 @@ void parseFunctionSkeleton():
 	TypedList tl;
 }
 {
-    <OPEN> fs=parseFunctionSymbol() 
-	
+    <OPEN> fs=parseFunctionSymbol()
+
 	tl = parseTypedList()
 	{
 		Iterator it = tl.objects.iterator();
@@ -584,7 +607,7 @@ void parseFunctionSkeleton():
 			Variable v =  new Variable(str);
 			v.setType((Type)tl.types.get(str));
 			fs.addVar(v);
-		}		
+		}
 		UP.funcSymbols.add(fs);
 	}
 	<CLOSE>
@@ -595,7 +618,7 @@ FunctionSymbol parseFunctionSymbol():
     Token t;
 }
 {
-    t=<NAME> 
+    t=<NAME>
 	{
 		FunctionSymbol fs = (FunctionSymbol) UP.funcSymbolMap.get(t.toString());
 		if (fs == null)
@@ -615,7 +638,7 @@ BinaryComparator parseFComp(Map varMap):
 {
 	Token t1;
 	Function f1, f2;
-	
+
 }
 {
 	<OPEN> t1=<BINARY_COMP> f1=parseFExp(varMap) f2=parseFExp(varMap) <CLOSE>
@@ -671,7 +694,7 @@ NamedFunction parseFHead(Map varMap):
 		}
 		return nf;
 	})
-	
+
 |	((<OPEN>)? <TOTAL_TIME> (<CLOSE>)? { return TotalTimeFunction.getInstance();})
 |	(f = parseFunctionSymbol()
 	{
@@ -686,7 +709,7 @@ NamedFunction parseFHead(Map varMap):
 
 ResourceOperator parseResourceOperator(Map varMap):
 {
-	Token t1; 
+	Token t1;
 	NamedFunction f1;
 	Function f2;
 }
@@ -712,7 +735,7 @@ void parseDurActionDef():
 	Map varMap = new Hashtable();
 }
 {
-    <OPEN> <DURATIVE_ACTION> a.name=parseOperatorName() <PARAMETERS> <OPEN> tl=parseTypedList() <CLOSE> 
+    <OPEN> <DURATIVE_ACTION> a.name=parseOperatorName() <PARAMETERS> <OPEN> tl=parseTypedList() <CLOSE>
     {
 		UP.actions.add(a);
 		Iterator it = tl.objects.iterator();
@@ -815,7 +838,7 @@ void parseDAEffect(UngroundDurativeAction da, Map varMap):
 }
 {
 	parseTimedEffect(da, varMap)
-|	(<OPEN> <AND> (parseDAEffect(da, varMap))* <CLOSE>) 
+|	(<OPEN> <AND> (parseDAEffect(da, varMap))* <CLOSE>)
 }
 
 void parseTimedEffect(UngroundDurativeAction da, Map varMap):
@@ -831,7 +854,7 @@ void parseTimedEffect(UngroundDurativeAction da, Map varMap):
 
 ResourceOperator parseFAssignDA(UngroundDurativeAction da, Map varMap):
 {
-	Token t1; 
+	Token t1;
 	NamedFunction f1;
 	Function f2;
 }
@@ -887,14 +910,15 @@ boolean parseProblem():
     {
 		UP.ProblemName = t.toString();
 		UP.ProblemDomainName = t2.toString();
-		if (!UP.DomainName.toLowerCase().equals(t2.toString().toLowerCase())) 
+		if (!UP.DomainName.toLowerCase().equals(t2.toString().toLowerCase()))
 			System.out.println("Warning Domain Name and Problem Name do not match");
     }
-    
+
     (parseRequireDef())?
     (parseObjectDeclaration())?
     parseInit()
     parseGoal()
+    (parseConstraints())?
 	(parseMetric())?
     <CLOSE> <EOF>
     { return true; }
@@ -920,8 +944,8 @@ void parseObjectDeclaration():
 			UP.objects.add(o);
 			UP.objectMap.put(str, o);
 		}
-    } 
-    
+    }
+
 }
 
 // ***************************************************
@@ -969,6 +993,53 @@ void parseGoal():
     <OPEN> <GOAL> e = parseGD(UP.objectMap, true) <CLOSE>
 	{ UP.goal = (GroundCondition) e; }
 }
+
+// **********************************
+// *	Parse Constraints
+// **********************************
+
+void parseConstraints():
+{
+}
+{
+    <OPEN> <CONSTRAINTS> parsePreferences() <CLOSE>
+}
+
+// **********************************
+// *	Parse Constraints Definition
+// **********************************
+
+void parsePreferences():
+{
+}
+{
+	(<OPEN> <AND> (parsePreference())* <CLOSE>)
+}
+
+void parsePreference():
+{
+}
+{
+    (<OPEN> <PREFERENCE> <NAME> <OPEN> (parseInternalPreference()) <CLOSE> <CLOSE>)
+}
+
+void parseInternalPreference():
+{
+    Literal l1, l2;
+}
+{
+    (<AT_END> (l1 = parseAtomicFormula(UP.objectMap, true)))
+|   (<ALWAYS> (l1 = parseAtomicFormula(UP.objectMap, true)))
+|   (<SOMETIME> (l1 = parseAtomicFormula(UP.objectMap, true)))
+|   (<WITHIN> <NUMBER> (l1 = parseAtomicFormula(UP.objectMap, true)))
+|   (<AT_MOST_ONCE> (l1 = parseAtomicFormula(UP.objectMap, true)))
+|   (<SOMETIME_AFTER> (l1 = parseAtomicFormula(UP.objectMap, true)) (l2 = parseAtomicFormula(UP.objectMap, true)))
+|   (<SOMETIME_BEFORE> (l1 = parseAtomicFormula(UP.objectMap, true)) (l2 = parseAtomicFormula(UP.objectMap, true)))
+|   (<ALWAYS_WITHIN> <NUMBER> (l1 = parseAtomicFormula(UP.objectMap, true)) (l2 = parseAtomicFormula(UP.objectMap, true)))
+|   (<HOLD_DURING> <NUMBER> <NUMBER> (l1 = parseAtomicFormula(UP.objectMap, true)))
+|   (<HOLD_AFTER> <NUMBER> (l1 = parseAtomicFormula(UP.objectMap, true)))
+}
+
 
 // **********************************
 // *	Parse Metric
