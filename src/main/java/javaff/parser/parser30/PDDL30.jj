@@ -15,6 +15,7 @@ import javaff.data.*;
 import javaff.data.strips.*;
 import javaff.data.metric.*;
 import javaff.data.temporal.*;
+import javaff.data.preference.*;
 
 import java.io.PrintStream;
 import java.io.File;
@@ -1000,44 +1001,52 @@ void parseGoal():
 
 void parseConstraints():
 {
+    AndPreference and;
 }
 {
-    <OPEN> <CONSTRAINTS> parsePreferences() <CLOSE>
+    <OPEN> <CONSTRAINTS> (and = parsePreferences()) <CLOSE>
+    {UP.constraints = and;}
 }
 
 // **********************************
 // *	Parse Constraints Definition
 // **********************************
 
-void parsePreferences():
+AndPreference parsePreferences():
 {
+	Preference p;
+	AndPreference and;
 }
 {
-	(<OPEN> <AND> (parsePreference())* <CLOSE>)
-}
-
-void parsePreference():
-{
-}
-{
-    (<OPEN> <PREFERENCE> <NAME> <OPEN> (parseInternalPreference()) <CLOSE> <CLOSE>)
+	(<OPEN> <AND> {and = new AndPreference();} (p = parsePreference() { and.add(p);} )* <CLOSE> {return and;})
 }
 
-void parseInternalPreference():
+
+Preference parsePreference():
+{
+    Preference p;
+    Token t;
+}
+{
+    (<OPEN> <PREFERENCE> (t = <NAME>) <OPEN> (p = parseInternalPreference(t.toString())) <CLOSE> <CLOSE> {return p;} )
+}
+
+Preference parseInternalPreference(String preferenceName):
 {
     Literal l1, l2;
+    Token t1, t2;
 }
 {
-    (<AT_END> (l1 = parseAtomicFormula(UP.objectMap, true)))
-|   (<ALWAYS> (l1 = parseAtomicFormula(UP.objectMap, true)))
-|   (<SOMETIME> (l1 = parseAtomicFormula(UP.objectMap, true)))
-|   (<WITHIN> <NUMBER> (l1 = parseAtomicFormula(UP.objectMap, true)))
-|   (<AT_MOST_ONCE> (l1 = parseAtomicFormula(UP.objectMap, true)))
-|   (<SOMETIME_AFTER> (l1 = parseAtomicFormula(UP.objectMap, true)) (l2 = parseAtomicFormula(UP.objectMap, true)))
-|   (<SOMETIME_BEFORE> (l1 = parseAtomicFormula(UP.objectMap, true)) (l2 = parseAtomicFormula(UP.objectMap, true)))
-|   (<ALWAYS_WITHIN> <NUMBER> (l1 = parseAtomicFormula(UP.objectMap, true)) (l2 = parseAtomicFormula(UP.objectMap, true)))
-|   (<HOLD_DURING> <NUMBER> <NUMBER> (l1 = parseAtomicFormula(UP.objectMap, true)))
-|   (<HOLD_AFTER> <NUMBER> (l1 = parseAtomicFormula(UP.objectMap, true)))
+    (<AT_END> (l1 = parseAtomicFormula(UP.objectMap, true)) {return PreferenceFactory.atEnd(preferenceName, l1);} )
+|   (<ALWAYS> (l1 = parseAtomicFormula(UP.objectMap, true)) {return PreferenceFactory.always(preferenceName, l1);} )
+|   (<SOMETIME> (l1 = parseAtomicFormula(UP.objectMap, true)) {return PreferenceFactory.sometime(preferenceName, l1);} )
+|   (<WITHIN> (t1 = <NUMBER>) (l1 = parseAtomicFormula(UP.objectMap, true)) {return PreferenceFactory.within(preferenceName, l1, Integer.parseInt(t1.toString()));} )
+|   (<AT_MOST_ONCE> (l1 = parseAtomicFormula(UP.objectMap, true)) {return PreferenceFactory.atMostOnce(preferenceName, l1);} )
+|   (<SOMETIME_AFTER> (l1 = parseAtomicFormula(UP.objectMap, true)) (l2 = parseAtomicFormula(UP.objectMap, true)) {return PreferenceFactory.sometimeAfter(preferenceName, l1,l2);} )
+|   (<SOMETIME_BEFORE> (l1 = parseAtomicFormula(UP.objectMap, true)) (l2 = parseAtomicFormula(UP.objectMap, true)) {return PreferenceFactory.sometimeBefore(preferenceName, l1,l2);} )
+|   (<ALWAYS_WITHIN> (t1 = <NUMBER>) (l1 = parseAtomicFormula(UP.objectMap, true)) (l2 = parseAtomicFormula(UP.objectMap, true)) {return PreferenceFactory.alwaysWithin(preferenceName, l1,l2, Integer.parseInt(t1.toString()));} )
+|   (<HOLD_DURING> (t1 = <NUMBER>) (t2 = <NUMBER>) (l1 = parseAtomicFormula(UP.objectMap, true)) {return PreferenceFactory.holdDuring(preferenceName, l1, Integer.parseInt(t1.toString()), Integer.parseInt(t2.toString()));} )
+|   (<HOLD_AFTER> (t1 = <NUMBER>) (l1 = parseAtomicFormula(UP.objectMap, true)) {return PreferenceFactory.holdAfter(preferenceName, l1, Integer.parseInt(t1.toString()));} )
 }
 
 

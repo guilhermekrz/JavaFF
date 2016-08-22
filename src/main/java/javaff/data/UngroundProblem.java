@@ -29,6 +29,7 @@
 package javaff.data;
 
 import javaff.data.metric.FunctionSymbol;
+import javaff.data.preference.AndPreference;
 import javaff.data.strips.*;
 
 import java.util.*;
@@ -63,7 +64,7 @@ public class UngroundProblem
 	public Map funcValues = new Hashtable();                // Maps functions onto numbers (NamedFunction => BigDecimal)
 	public GroundCondition goal;
 
-	public GroundCondition constraints;                     // Constraints for this problem
+	public AndPreference constraints;                       // Constraints for this problem
 
 	public Metric metric;
 

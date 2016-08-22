@@ -4,6 +4,7 @@ import javaff.data.*;
 import javaff.data.strips.*;
 import javaff.data.metric.*;
 import javaff.data.temporal.*;
+import javaff.data.preference.*;
 import java.io.PrintStream;
 import java.io.File;
 import java.io.FileReader;

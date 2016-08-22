@@ -1,6 +1,7 @@
 package javaff.parser.parser30;
 
 import javaff.data.UngroundProblem;
+import javaff.data.preference.AndPreference;
 import org.junit.Test;
 
 import java.io.File;
@@ -25,6 +26,8 @@ public class PDDL30parserTest {
 	public void testRovers1() {
 		UngroundProblem ungroundProblem = PDDL30parser.parseFiles(new File("pddl/pddl30/rovers/QualitativePreferences/domain.pddl"), new File("pddl/pddl30/rovers/QualitativePreferences/p01.pddl"));
 		assertEquals(9, ungroundProblem.actions.size());
+		AndPreference constraints = ungroundProblem.constraints;
+		assertEquals(19, constraints.getPreferences().size());
 	}
 
 	@Test
