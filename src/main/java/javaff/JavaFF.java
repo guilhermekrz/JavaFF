@@ -28,25 +28,19 @@
 
 package javaff;
 
-import javaff.data.UngroundProblem;
 import javaff.data.GroundProblem;
 import javaff.data.Plan;
 import javaff.data.TotalOrderPlan;
+import javaff.data.UngroundProblem;
 import javaff.parser.parser21.PDDL21parser;
-import javaff.planning.State;
-import javaff.planning.TemporalMetricState;
 import javaff.planning.HelpfulFilter;
 import javaff.planning.NullFilter;
+import javaff.planning.State;
+import javaff.planning.TemporalMetricState;
 import javaff.search.BestFirstSearch;
 import javaff.search.EnforcedHillClimbingSearch;
 
-
-import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.math.BigDecimal;
 import java.util.Random;
 
@@ -183,11 +177,6 @@ public class JavaFF
 			printWriter.close();
 		}
 		catch (FileNotFoundException e)
-	    {
-			errorOutput.println(e);
-			e.printStackTrace();
-		}
-		catch (IOException e)
 	    {
 			errorOutput.println(e);
 			e.printStackTrace();

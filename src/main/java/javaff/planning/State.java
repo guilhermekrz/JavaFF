@@ -28,13 +28,15 @@
 
 package javaff.planning;
 
+import javaff.JavaFF;
 import javaff.data.Action;
 import javaff.data.GroundCondition;
 import javaff.data.Plan;
+
 import java.math.BigDecimal;
-import java.util.Set;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 public abstract class State implements Cloneable
 {
@@ -73,7 +75,7 @@ public abstract class State implements Cloneable
 			s = (State) this.clone();
 		}
 		catch (CloneNotSupportedException e){
-			javaff.JavaFF.errorOutput.println(e);
+			JavaFF.errorOutput.println(e);
 		}
 		a.apply(s);
 		return s;
