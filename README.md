@@ -1,4 +1,4 @@
-# JavaFF
+# JavaFF [![Build Status](https://travis-ci.com/guilhermekrz/JavaFF.svg?token=VBgyk5JAs3dn31fkKpxS&branch=master)](https://travis-ci.com/guilhermekrz/JavaFF)
 
 Initial commit from: http://www.inf.kcl.ac.uk/staff/andrew/JavaFF/ - version 1.0.1
 
