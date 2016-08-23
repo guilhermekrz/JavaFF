@@ -2514,6 +2514,7 @@ private int jjMoveNfa_0(int startState, int curPos)
                   break;
                case 1:
                case 23:
+               case 177:
                case 198:
                case 222:
                   if ((0x400000004000L & l) != 0L)
@@ -2810,7 +2811,6 @@ private int jjMoveNfa_0(int startState, int curPos)
                      jjstateSet[jjnewStateCnt++] = 130;
                   break;
                case 132:
-               case 177:
                   if ((0x400000004000L & l) != 0L)
                      jjCheckNAdd(120);
                   break;
