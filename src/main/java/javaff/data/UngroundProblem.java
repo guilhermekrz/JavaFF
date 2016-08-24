@@ -57,51 +57,50 @@ public class UngroundProblem {
 										// Problem
 
 
-	public Set<Type> types = new HashSet<Type>(); // For simple object types in this
+	public Set<Type> types = new HashSet<>(); // For simple object types in this
 										// domain (SimpleTypes)
-	public Map<String, Type> typeMap = new Hashtable<String, Type>(); // Set for mapping String -> types
+	public Map<String, Type> typeMap = new Hashtable<>(); // Set for mapping String -> types
 											// (String => Type)
-	public Map<Type, Set<PDDLObject>> typeSets = new Hashtable<Type, Set<PDDLObject>>(); // Maps a type on to a set of
+	public Map<Type, Set<PDDLObject>> typeSets = new Hashtable<>(); // Maps a type on to a set of
 											// PDDLObjects (Type => Set
 											// (PDDLObjects))
 
-	public Set<PredicateSymbol> predSymbols = new HashSet<PredicateSymbol>(); // Set of all (ungrounded) predicate
+	public Set<PredicateSymbol> predSymbols = new HashSet<>(); // Set of all (ungrounded) predicate
 											// (PredicateSymbol)
-	public Map<String, PredicateSymbol> predSymbolMap = new Hashtable<String, PredicateSymbol>(); // Maps Strings of the symbol to
+	public Map<String, PredicateSymbol> predSymbolMap = new Hashtable<>(); // Maps Strings of the symbol to
 												// the Symbols (String =>
 												// PredicateSymbol)
 
-	public Set<Constant> constants = new HashSet<Constant>(); // Set of all constant (PDDLObjects)
-	public Map<String, Constant> constantMap = new Hashtable<String, Constant>(); // Maps Strings of the constant
+	public Set<Constant> constants = new HashSet<>(); // Set of all constant (PDDLObjects)
+	public Map<String, Constant> constantMap = new Hashtable<>(); // Maps Strings of the constant
 												// to the PDDLObject
 
-	public Set<FunctionSymbol> funcSymbols = new HashSet<FunctionSymbol>(); // Set of all function symbols
+	public Set<FunctionSymbol> funcSymbols = new HashSet<>(); // Set of all function symbols
 											// (FunctionSymbol)
-	public Map<String, FunctionSymbol> funcSymbolMap = new Hashtable<String, FunctionSymbol>(); // Maps Strings onto the Symbols
+	public Map<String, FunctionSymbol> funcSymbolMap = new Hashtable<>(); // Maps Strings onto the Symbols
 												// (String => FunctionSymbol)
 
-	public Set<Operator> actions = new HashSet<Operator>(); // List of all (ungrounded) actions
+	public Set<Operator> actions = new HashSet<>(); // List of all (ungrounded) actions
 										// (Operators)
 
-	public Set<PDDLObject> objects = new HashSet<PDDLObject>(); // Objects in the problem (PDDLObject)
-	public Map<String, PDDLObject> objectMap = new Hashtable<String, PDDLObject>(); // Maps Strings onto PDDLObjects
+	public Set<PDDLObject> objects = new HashSet<>(); // Objects in the problem (PDDLObject)
+	public Map<String, PDDLObject> objectMap = new Hashtable<>(); // Maps Strings onto PDDLObjects
 											// (String => PDDLObject)
 
-	public Set<Fact> initial = new HashSet<Fact>(); // Set of initial facts (Proposition)
-	public Map<NamedFunction, BigDecimal> funcValues = new Hashtable<NamedFunction, BigDecimal>(); // Maps functions onto numbers
+	public Set<Fact> initial = new HashSet<>(); // Set of initial facts (Proposition)
+	public Map<NamedFunction, BigDecimal> funcValues = new Hashtable<>(); // Maps functions onto numbers
 												// (NamedFunction => BigDecimal)
 	public GroundFact goal = new And();
 
-	public Fact constraints = new And();
+	private UngroundFact constraints = new And();
 
 	public Metric metric;
 	
 	public DomainRequirements requirements = new DomainRequirements();
 
-	public Map<PredicateSymbol, Set<Proposition>> staticPropositionMap = new Hashtable<PredicateSymbol, Set<Proposition>>(); // (PredicateName => Set
-														// (Proposition))
+	public Map<PredicateSymbol, Set<Proposition>> staticPropositionMap = new Hashtable<>(); // (PredicateName => Set (Proposition))
 
-	public List<TimedInitialLiteral> tils = new ArrayList<TimedInitialLiteral>();
+	public List<TimedInitialLiteral> tils = new ArrayList<>();
 	
 	public TypeGraph typeGraph = new TypeGraph();
 	
@@ -369,14 +368,12 @@ public class UngroundProblem {
 		
 	}
 
-	public GroundProblem ground()
-	{
+	public GroundProblem ground() {
 		this.calculateStatics();
 		this.makeStaticPropositionMap();
 		this.buildTypeSets();
 		Set<Action> groundActions = new HashSet<Action>();
-		for (Operator o : this.actions)
-		{
+		for (Operator o : this.actions) {
 			Set<Action> s = o.ground(this);
 			groundActions.addAll(s);
 		}
@@ -385,10 +382,8 @@ public class UngroundProblem {
 		//TODO move this code to a better location?
 		//This loop goes around all actions looking for functions
 		//
-		for (Action a : groundActions)
-		{
-			for (NamedFunction co : a.getComparators())
-			{
+		for (Action a : groundActions) {
+			for (NamedFunction co : a.getComparators()) {
 				System.out.println("found comparator "+co+" in "+a);
 //				BinaryComparator bc = (BinaryComparator) co;
 //				NamedFunction namef = (NamedFunction) bc.first;
@@ -399,14 +394,18 @@ public class UngroundProblem {
 			}
 		}
 	
-		if (UngroundProblem.RemoveStaticFacts == true)
-		{
+		if (UngroundProblem.RemoveStaticFacts) {
 			this.staticify(groundActions);
+		}
+
+		// Constraints
+		GroundFact groundConstraints = new And();
+		for(Fact fact : constraints.getFacts()) {
+
 		}
 		
 		//create the final ground problem
-		GroundProblem rGP = new GroundProblem(groundActions, initial, goal,
-				funcValues, metric);
+		GroundProblem rGP = new GroundProblem(groundActions, initial, goal, funcValues, groundConstraints, metric);
 		rGP.setName(this.DomainName);//+"_-_"+this.ProblemName;
 		rGP.setRequirements(this.requirements);
 		
@@ -442,7 +441,7 @@ public class UngroundProblem {
 		for (Type t : this.types)
 		{
 //			SimpleType st = (SimpleType) t;
-			Set<PDDLObject> typeObjects = new HashSet<PDDLObject>();
+			Set<PDDLObject> typeObjects = new HashSet<>();
 			typeSets.put(t, typeObjects);
 
 			for (PDDLObject o : this.objects)
@@ -479,7 +478,7 @@ public class UngroundProblem {
 			Iterator<Operator> oit = actions.iterator();
 			while (oit.hasNext() && isStatic)
 			{
-				Operator o = (Operator) oit.next();
+				Operator o = oit.next();
 				isStatic = !o.effects(ps); //if the operator effects the fact, then it is not static
 			}
 			ps.setStatic(isStatic);
@@ -491,7 +490,7 @@ public class UngroundProblem {
 			Iterator<Operator> oit = actions.iterator();
 			while (oit.hasNext() && isStatic)
 			{
-				Operator o = (Operator) oit.next();
+				Operator o = oit.next();
 				isStatic = !o.effects(fs); //if the operator effects the function, then it is not static
 			}
 			fs.setStatic(isStatic);
@@ -500,23 +499,16 @@ public class UngroundProblem {
 
 	private void makeStaticPropositionMap()
 	{
-		Iterator<PredicateSymbol> pit = predSymbols.iterator();
-		while (pit.hasNext())
-		{
-			PredicateSymbol ps = (PredicateSymbol) pit.next();
-			if (ps.isStatic())
-			{
-				staticPropositionMap.put(ps, new HashSet<Proposition>());
+		for (PredicateSymbol ps : predSymbols) {
+			if (ps.isStatic()) {
+				staticPropositionMap.put(ps, new HashSet<>());
 			}
 		}
 
-		Iterator<Fact> iit = initial.iterator();
-		while (iit.hasNext())
-		{
-			Fact p = (Fact) iit.next();
+		for (Fact p : initial) {
 			if (p.isStatic() && this.initial.contains(p) && p instanceof Proposition) //second condition eliminate any illegal static facts, ie unachievable
 			{
-				(staticPropositionMap.get(((Proposition)p).name)).add((Proposition) p);
+				(staticPropositionMap.get(((Proposition) p).name)).add((Proposition) p);
 			}
 		}
 	}
@@ -544,31 +536,45 @@ public class UngroundProblem {
 		initial.removeAll(staticProps);
 	}
 
+	public UngroundFact getConstraints() {
+		return constraints;
+	}
+
+	public void addConstraints(Fact andConstraints) {
+		Set<? extends Fact> facts1 = this.constraints.getFacts();
+		Set<Fact> facts2 = ((And) andConstraints).getFacts();
+		Set<Fact> allFacts = new HashSet<>();
+		allFacts.addAll(facts1);
+		allFacts.addAll(facts2);
+		this.constraints = new And(allFacts);
+	}
+
 	public Object clone()
 	{
 		UngroundProblem clone = new UngroundProblem();
 		
-		clone.actions = new HashSet<Operator>(this.actions);
-		clone.constantMap = new Hashtable<String, Constant>(this.constantMap);
-		clone.constants = new HashSet<Constant>(this.constants);
+		clone.actions = new HashSet<>(this.actions);
+		clone.constantMap = new Hashtable<>(this.constantMap);
+		clone.constants = new HashSet<>(this.constants);
 		clone.DomainName = this.DomainName;
-		clone.funcSymbolMap = new Hashtable<String, FunctionSymbol>(this.funcSymbolMap);
-		clone.funcSymbols = new HashSet<FunctionSymbol>(this.funcSymbols);
-		clone.funcValues = new Hashtable<NamedFunction, BigDecimal>(this.funcValues);
+		clone.funcSymbolMap = new Hashtable<>(this.funcSymbolMap);
+		clone.funcSymbols = new HashSet<>(this.funcSymbols);
+		clone.funcValues = new Hashtable<>(this.funcValues);
 		clone.goal = (GroundFact) this.goal.clone();
-		clone.initial = new HashSet<Fact>(this.initial);
+		clone.initial = new HashSet<>(this.initial);
+		clone.constraints = (UngroundFact) this.constraints.clone();
 		clone.metric = this.metric; //FIXME shallow clone
-		clone.objectMap = new Hashtable<String, PDDLObject>(this.objectMap);
-		clone.objects = new HashSet<PDDLObject>(this.objects);
-		clone.predSymbolMap = new Hashtable<String, PredicateSymbol>(this.predSymbolMap);
-		clone.predSymbols = new HashSet<PredicateSymbol>(this.predSymbols);
+		clone.objectMap = new Hashtable<>(this.objectMap);
+		clone.objects = new HashSet<>(this.objects);
+		clone.predSymbolMap = new Hashtable<>(this.predSymbolMap);
+		clone.predSymbols = new HashSet<>(this.predSymbols);
 		clone.ProblemDomainName = this.ProblemDomainName;
 		clone.ProblemName = this.ProblemName;
 		clone.requirements = (DomainRequirements) this.requirements.clone();
-		clone.staticPropositionMap = new Hashtable<PredicateSymbol, Set<Proposition>>(this.staticPropositionMap);
-		clone.typeMap = new Hashtable<String, Type>(this.typeMap);
-		clone.types = new HashSet<Type>(this.types);
-		clone.typeSets = new Hashtable<Type, Set<PDDLObject>>(this.typeSets);
+		clone.staticPropositionMap = new Hashtable<>(this.staticPropositionMap);
+		clone.typeMap = new Hashtable<>(this.typeMap);
+		clone.types = new HashSet<>(this.types);
+		clone.typeSets = new Hashtable<>(this.typeSets);
 		clone.typeGraph = (TypeGraph) typeGraph.clone();
 		
 		return clone;

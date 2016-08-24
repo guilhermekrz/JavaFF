@@ -28,46 +28,17 @@
 
 package javaff.data;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
-
 import javaff.data.adl.ADLFact;
 import javaff.data.adl.ConditionalEffect;
 import javaff.data.adl.Or;
-import javaff.data.metric.BinaryComparator;
-import javaff.data.metric.Function;
-import javaff.data.metric.Metric;
-import javaff.data.metric.MetricType;
-import javaff.data.metric.NamedFunction;
-import javaff.data.metric.ResourceOperator;
-import javaff.data.strips.And;
-import javaff.data.strips.Equals;
-import javaff.data.strips.InstantAction;
-import javaff.data.strips.Not;
-import javaff.data.strips.NullFact;
-import javaff.data.strips.Proposition;
-import javaff.data.strips.STRIPSFact;
-import javaff.data.strips.SingleLiteral;
-import javaff.data.strips.TrueCondition;
+import javaff.data.metric.*;
+import javaff.data.strips.*;
 import javaff.data.temporal.DurativeAction;
-import javaff.planning.MetricState;
-import javaff.planning.RelaxedMetricPlanningGraph;
-import javaff.planning.RelaxedPlanningGraph;
-import javaff.planning.RelaxedTemporalMetricPlanningGraph;
-import javaff.planning.STRIPSState;
-import javaff.planning.State;
-import javaff.planning.TemporalMetricState;
+import javaff.planning.*;
 import javaff.search.UnreachableGoalException;
+
+import java.math.BigDecimal;
+import java.util.*;
 
 public class GroundProblem implements Cloneable {
 	
@@ -75,8 +46,9 @@ public class GroundProblem implements Cloneable {
 	private String problemPath;
 	
 	private String name;
-	private Set<Action> actions = new HashSet<Action>();
-	private Map<NamedFunction, BigDecimal> functionValues = new Hashtable<NamedFunction, BigDecimal>();
+	private Set<Action> actions = new HashSet<>();
+	private Map<NamedFunction, BigDecimal> functionValues = new Hashtable<>();
+	private GroundFact constraints = new And();
 	private Metric metric;
 
 	private GroundFact goal;
@@ -106,24 +78,24 @@ public class GroundProblem implements Cloneable {
 	
 	protected GroundProblem()
 	{
-		actions = new HashSet<Action>();
-		initial = new HashSet<Fact>();
+		actions = new HashSet<>();
+		initial = new HashSet<>();
 		goal = new And();
-		functionValues = new HashMap<NamedFunction, BigDecimal>();
+		functionValues = new HashMap<>();
 		metric = new Metric(MetricType.Minimize, null);
 		name = "unknown";
-		this.reachableFacts = new HashSet<Fact>();
-		this.staticFacts = new HashSet<Fact>();
+		this.reachableFacts = new HashSet<>();
+		this.staticFacts = new HashSet<>();
 //		this.state = this.getTemporalMetricInitialState();
-		this.objects = new HashSet<Parameter>();
-		this.objectPropositionMap = new HashMap<Parameter, Set<Proposition>>();
+		this.objects = new HashSet<>();
+		this.objectPropositionMap = new HashMap<>();
 		this.requirements = new DomainRequirements();
 		
-		this.reachableFacts = new HashSet<Fact>();
+		this.reachableFacts = new HashSet<>();
 	}
 
 
-	public GroundProblem(Set<Action> a, Set<Fact> i, GroundFact g, Map<NamedFunction, BigDecimal> f, Metric m)
+	public GroundProblem(Set<Action> a, Set<Fact> i, GroundFact g, Map<NamedFunction, BigDecimal> f, GroundFact constraints, Metric m)
 	{
 		this();
 		
@@ -131,6 +103,7 @@ public class GroundProblem implements Cloneable {
 		initial = i;
 		goal = g;
 		functionValues = f;
+		this.constraints = constraints;
 		metric = m;
 		name = "UntitledDomain";
 		
@@ -141,10 +114,9 @@ public class GroundProblem implements Cloneable {
 		try {
 			filterReachableFacts();
 		} catch (UnreachableGoalException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		this.reachableFacts = new HashSet<Fact>(this.groundedPropositions);
+		this.reachableFacts = new HashSet<>(this.groundedPropositions);
 	}
 	
 	/**
@@ -157,7 +129,7 @@ public class GroundProblem implements Cloneable {
 	{
 		for (Fact f : goals)
 		{
-			if (this.reachableFacts.contains(f) == false)
+			if (!this.reachableFacts.contains(f))
 				return false;
 			
 		}
@@ -168,11 +140,12 @@ public class GroundProblem implements Cloneable {
 	
 	public Object clone()
 	{
-		GroundProblem clone = new GroundProblem(new HashSet<Action>(this.getActions()),
-												new HashSet<Fact>(this.getInitial()),
-												(GroundFact)this.getGoal().clone(),
-												new Hashtable<NamedFunction, BigDecimal>(this.getFunctionValues()),
-												this.getMetric());
+		GroundProblem clone = new GroundProblem(new HashSet<>(this.getActions()),
+				new HashSet<>(this.getInitial()),
+				(GroundFact)this.getGoal().clone(),
+				new Hashtable<>(this.getFunctionValues()),
+				this.getConstraints(),
+				this.getMetric());
 		
 		if (this.getState() != null)
 			clone.setState((State) this.getState().clone());
@@ -185,7 +158,7 @@ public class GroundProblem implements Cloneable {
 		
 		clone.setGroundedPropositions(new HashSet<Proposition>(this.getGroundedPropositions()));
 		clone.setReachableFacts(new HashSet<Fact>(this.getReachableFacts()));
-		clone.setName(new String(this.getName()));
+		clone.setName(this.getName());
 		clone.setObjects(new HashSet<Parameter>(this.getObjects()));
 		clone.setObjectPropositionMap(new HashMap<Parameter, Set<Proposition>>(this.getObjectPropositionMap()));
 		clone.setRequirements((DomainRequirements) this.getRequirements().clone());
@@ -200,7 +173,7 @@ public class GroundProblem implements Cloneable {
 		{
 			for (Parameter par : p.getParameters())
 			{
-				if (this.getObjectPropositionMap().containsKey(par) == false)
+				if (!this.getObjectPropositionMap().containsKey(par))
 					this.getObjectPropositionMap().put(par, new HashSet<Proposition>());
 				
 				this.getObjectPropositionMap().get(par).add(p);
@@ -397,16 +370,11 @@ public class GroundProblem implements Cloneable {
 	{
 		Set na = new HashSet();
 		Set ni = new HashSet();
-		Iterator ait = getActions().iterator();
-		while (ait.hasNext())
-		{
-			Action act = (Action) ait.next();
-			if (act instanceof InstantAction)
-			{
+		for (Object act : getActions()) {
+			if (act instanceof InstantAction) {
 				na.add(act);
 				ni.add(act);
-			} else if (act instanceof DurativeAction)
-			{
+			} else if (act instanceof DurativeAction) {
 				DurativeAction dact = (DurativeAction) act;
 				na.add(dact.startAction);
 				na.add(dact.endAction);
@@ -416,7 +384,7 @@ public class GroundProblem implements Cloneable {
 		TemporalMetricState ts = new TemporalMetricState(ni, getInitial(), getGoal(),
 				getFunctionValues(), getMetric());
 		GroundProblem gp = new GroundProblem(na, getInitial(), getGoal(),
-				getFunctionValues(), getMetric());
+				getFunctionValues(), getConstraints(), getMetric());
 		ts.setRPG(new RelaxedTemporalMetricPlanningGraph(gp));
 		this.setState(ts);	
 		
@@ -429,16 +397,11 @@ public class GroundProblem implements Cloneable {
 		{
 			Set na = new HashSet();
 			Set ni = new HashSet();
-			Iterator ait = getActions().iterator();
-			while (ait.hasNext())
-			{
-				Action act = (Action) ait.next();
-				if (act instanceof InstantAction)
-				{
+			for (Object act : getActions()) {
+				if (act instanceof InstantAction) {
 					na.add(act);
 					ni.add(act);
-				} else if (act instanceof DurativeAction)
-				{
+				} else if (act instanceof DurativeAction) {
 					DurativeAction dact = (DurativeAction) act;
 					na.add(dact.startAction);
 					na.add(dact.endAction);
@@ -448,7 +411,7 @@ public class GroundProblem implements Cloneable {
 			TemporalMetricState ts = new TemporalMetricState(ni, getInitial(), getGoal(),
 					getFunctionValues(), getMetric());
 			GroundProblem gp = new GroundProblem(na, getInitial(), getGoal(),
-					getFunctionValues(), getMetric());
+					getFunctionValues(), getConstraints(), getMetric());
 			gp.setName(this.getName());
 			gp.setReachableFacts(new HashSet<Fact>(this.getReachableFacts()));
 			ts.setRPG(new RelaxedTemporalMetricPlanningGraph(gp));
@@ -506,10 +469,10 @@ public class GroundProblem implements Cloneable {
 		HashSet<Fact> unmetGoals = new HashSet<Fact>(this.getGoal().getFacts());
 		unmetGoals.removeAll(finalFacts);
 		
-		if (ignoreUnreachableGoal == false)
-		{
-			if (unmetGoals.isEmpty() == false)
+		if (!ignoreUnreachableGoal) {
+			if (!unmetGoals.isEmpty()) {
 				throw new UnreachableGoalException(unmetGoals, "Goal is not reachable through RPG reachability analysis");
+			}
 		}
 		
 		int oldFactCount = this.getReachableFacts().size();
@@ -538,8 +501,7 @@ public class GroundProblem implements Cloneable {
 	/**
 	 * By default, GroundProblems can contain ADL actions and predicates. Calling this will
 	 * convert the problem into a STRIPS-only form, by removing ADL from actions and replacing them with
-	 * STRIPS-equivalent actions. 
-	 * @param ground
+	 * STRIPS-equivalent actions.
 	 * @return The number of STRIPS actions which would have been generated, including unreachable actions
 	 *  which are automatically removed.
 	 */
@@ -553,7 +515,7 @@ public class GroundProblem implements Cloneable {
 		//no ADL constructs exist in the PCs (actions unsupported for now), it can be added to the set of
 		//legal actions.
 		Queue<Action> queue = new LinkedList<Action>(this.getActions());
-		out: while (queue.isEmpty() == false)
+		out: while (!queue.isEmpty())
 		{
 			Action a = queue.remove();
 			
@@ -561,7 +523,7 @@ public class GroundProblem implements Cloneable {
 			{
 				for (Fact pc : a.getPreconditions())
 				{
-					if (this.decompileInstantAction(pc, (InstantAction) a, this.staticFacts, queue) == true) //if the action needed changed and requires to be reparsed
+					if (this.decompileInstantAction(pc, (InstantAction) a, this.staticFacts, queue)) //if the action needed changed and requires to be reparsed
 					{
 						continue out;
 					}
@@ -634,7 +596,7 @@ public class GroundProblem implements Cloneable {
 			for (Fact f : ((CompoundLiteral)pc).getCompoundFacts())
 			{
 				boolean res = this.decompileInstantAction(f, a, staticFacts, queue);
-				if (res == true)
+				if (res)
 				{
 					changed = true;
 				}
@@ -685,7 +647,7 @@ public class GroundProblem implements Cloneable {
 		else if (pc instanceof Not)
 		{
 			boolean res = this.decompileInstantAction(((Not) pc).getLiteral(), a, staticFacts, queue);
-			if (res == true)
+			if (res)
 				return true;
 		}
 		else if (pc instanceof ConditionalEffect)
@@ -737,7 +699,7 @@ public class GroundProblem implements Cloneable {
 		for(String a: actions)
 			groundActions.add(0, getAction(a));
 		
-		return new HashSet<Action>(groundActions);
+		return new HashSet<>(groundActions);
 	}
 
 	public Set<Action> getActions()
@@ -755,9 +717,8 @@ public class GroundProblem implements Cloneable {
 		return functionValues;
 	}
 
-	public void setFunctionValues(Map<NamedFunction, BigDecimal> functionValues)
-	{
-		this.functionValues = functionValues;
+	public GroundFact getConstraints() {
+		return constraints;
 	}
 
 	public Metric getMetric()

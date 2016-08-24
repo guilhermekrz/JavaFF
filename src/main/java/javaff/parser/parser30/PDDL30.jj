@@ -255,6 +255,7 @@ boolean parseDomain():
     (parsePredicatesDef())?
     (parseFunctionsDef())?
     (parseStructureDef())*
+	(parseConstraints())?
     <CLOSE>
     <EOF>
 	{return true;}
@@ -1484,7 +1485,7 @@ void parseConstraints():
 }
 {
     <OPEN> <CONSTRAINTS> e = parsePreferences(UP.objectMap, true) <CLOSE>
-    {UP.constraints = e;}
+    {UP.addConstraints(e);}
 }
 
 // **********************************

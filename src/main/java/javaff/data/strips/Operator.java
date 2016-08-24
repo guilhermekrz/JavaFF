@@ -136,7 +136,7 @@ public abstract class Operator implements javaff.data.PDDLPrintable
 				if (this.isSimpleFalse(pc) == -1)
 					continue out;
 
-				if (pc.isStatic() && up.initial.contains(pc) == false)
+				if (pc.isStatic() && !up.initial.contains(pc))
 					continue out;
 			}
 			
