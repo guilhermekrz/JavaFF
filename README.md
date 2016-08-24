@@ -1,6 +1,7 @@
 # JavaFF [![Build Status](https://travis-ci.com/guilhermekrz/JavaFF.svg?token=VBgyk5JAs3dn31fkKpxS&branch=master)](https://travis-ci.com/guilhermekrz/JavaFF)
 
 Initial commit from: http://www.inf.kcl.ac.uk/staff/andrew/JavaFF/ - version 1.0.1
+TODO: this is not longer true. Try to find with Ramon the source of this commit.
 
 JavaFF is released under the [GNU GPL](http://www.gnu.org/licenses/gpl.html).
 
