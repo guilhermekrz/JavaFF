@@ -37,12 +37,12 @@ import java.util.Map;
 public class BinaryFunction implements Function
 {
 
-    public Function first, second;
-    public int type;
+	public Function first, second;
+	public int type;
 
-    protected BinaryFunction()
-    {
-    }
+	protected BinaryFunction()
+	{
+	}
 
 	public BinaryFunction(String s, Function f1, Function f2)
 	{
@@ -80,79 +80,104 @@ public class BinaryFunction implements Function
 		if (isStatic())
 		{
 			return new NumberFunction(getValue(null));
-		}
-		else return this;
+		} else
+			return this;
 	}
 
 	public Function makeOnlyDurationDependent(MetricState s)
 	{
-		BinaryFunction bf = new BinaryFunction(type, first.makeOnlyDurationDependent(s), second.makeOnlyDurationDependent(s));
+		BinaryFunction bf = new BinaryFunction(type, first
+				.makeOnlyDurationDependent(s), second
+				.makeOnlyDurationDependent(s));
 		Function f = null;
-		if (bf.first instanceof NumberFunction && bf.second instanceof NumberFunction)
+		if (bf.first instanceof NumberFunction
+				&& bf.second instanceof NumberFunction)
 		{
 			f = new NumberFunction(bf.getValue(s));
-		}
-		else f = bf;
+		} else
+			f = bf;
 		return f;
 	}
-	
 
 	public Function ground(Map varMap)
-    {
-		return new BinaryFunction(type, first.ground(varMap), second.ground(varMap));
-    }
+	{
+		return new BinaryFunction(type, first.ground(varMap), second
+				.ground(varMap));
+	}
 
 	public boolean equals(Object obj)
 	{
 		if (obj instanceof BinaryFunction)
 		{
 			BinaryFunction bf = (BinaryFunction) obj;
-			if (bf.type == this.type && first.equals(bf.first) && second.equals(bf.second)) return true;
-			else if (((bf.type == MetricSymbolStore.PLUS && this.type == MetricSymbolStore.PLUS) ||
-			          (this.type == MetricSymbolStore.MULTIPLY && bf.type == MetricSymbolStore.MULTIPLY)) &&
-			         (first.equals(bf.second) && second.equals(bf.first))) return true;
-			else return false;
-		}
-		else return false;
+			if (bf.type == this.type && first.equals(bf.first)
+					&& second.equals(bf.second))
+				return true;
+			else if (((bf.type == MetricSymbolStore.PLUS && this.type == MetricSymbolStore.PLUS) || (this.type == MetricSymbolStore.MULTIPLY && bf.type == MetricSymbolStore.MULTIPLY))
+					&& (first.equals(bf.second) && second.equals(bf.first)))
+				return true;
+			else
+				return false;
+		} else
+			return false;
 	}
-	
 
-    public String toString()
-    {
-		return "("+MetricSymbolStore.getSymbol(type)+" "+first.toString()+" "+second.toString()+")";
-    }
+	public String toString()
+	{
+		return "(" + MetricSymbolStore.getSymbol(type) + " " + first.toString()
+				+ " " + second.toString() + ")";
+	}
 
 	public String toStringTyped()
-    {
-		return "("+MetricSymbolStore.getSymbol(type)+" "+first.toStringTyped()+" "+second.toStringTyped()+")";
-    }
+	{
+		return "(" + MetricSymbolStore.getSymbol(type) + " "
+				+ first.toStringTyped() + " " + second.toStringTyped() + ")";
+	}
 
-    public BigDecimal getValue(MetricState s)
-    {
+	public BigDecimal getValue(MetricState s)
+	{
 		BigDecimal fbd = first.getValue(s);
 		BigDecimal sbd = second.getValue(s);
-		if (type == MetricSymbolStore.PLUS) return fbd.add(sbd);
-		else if (type == MetricSymbolStore.MINUS) return fbd.subtract(sbd);
-		else if (type == MetricSymbolStore.MULTIPLY) return fbd.multiply(sbd);
-		else if (type == MetricSymbolStore.DIVIDE) return fbd.divide(sbd, MetricSymbolStore.SCALE, MetricSymbolStore.ROUND);
-		else return null;
-    }
+		if (type == MetricSymbolStore.PLUS)
+			return fbd.add(sbd);
+		else if (type == MetricSymbolStore.MINUS)
+			return fbd.subtract(sbd);
+		else if (type == MetricSymbolStore.MULTIPLY)
+			return fbd.multiply(sbd);
+		else if (type == MetricSymbolStore.DIVIDE)
+			return fbd.divide(sbd, MetricSymbolStore.SCALE,
+					MetricSymbolStore.ROUND);
+		else
+			return null;
+	}
 
 	public BigDecimal getMaxValue(MatrixSTN stn)
 	{
-		if (type == MetricSymbolStore.PLUS) return first.getMaxValue(stn).add(second.getMaxValue(stn));
-		else if (type == MetricSymbolStore.MINUS) return first.getMaxValue(stn).subtract(second.getMinValue(stn));
-		else if (type == MetricSymbolStore.MULTIPLY) return first.getMaxValue(stn).multiply(second.getMaxValue(stn));
-		else if (type == MetricSymbolStore.DIVIDE) return first.getMaxValue(stn).divide(second.getMinValue(stn), MetricSymbolStore.SCALE, MetricSymbolStore.ROUND);
-		else return null;
+		if (type == MetricSymbolStore.PLUS)
+			return first.getMaxValue(stn).add(second.getMaxValue(stn));
+		else if (type == MetricSymbolStore.MINUS)
+			return first.getMaxValue(stn).subtract(second.getMinValue(stn));
+		else if (type == MetricSymbolStore.MULTIPLY)
+			return first.getMaxValue(stn).multiply(second.getMaxValue(stn));
+		else if (type == MetricSymbolStore.DIVIDE)
+			return first.getMaxValue(stn).divide(second.getMinValue(stn),
+					MetricSymbolStore.SCALE, MetricSymbolStore.ROUND);
+		else
+			return null;
 	}
 
 	public BigDecimal getMinValue(MatrixSTN stn)
 	{
-		if (type == MetricSymbolStore.PLUS) return first.getMinValue(stn).add(second.getMinValue(stn));
-		else if (type == MetricSymbolStore.MINUS) return first.getMinValue(stn).subtract(second.getMaxValue(stn));
-		else if (type == MetricSymbolStore.MULTIPLY) return first.getMinValue(stn).multiply(second.getMinValue(stn));
-		else if (type == MetricSymbolStore.DIVIDE) return first.getMinValue(stn).divide(second.getMaxValue(stn), MetricSymbolStore.SCALE, MetricSymbolStore.ROUND);
-		else return null;
+		if (type == MetricSymbolStore.PLUS)
+			return first.getMinValue(stn).add(second.getMinValue(stn));
+		else if (type == MetricSymbolStore.MINUS)
+			return first.getMinValue(stn).subtract(second.getMaxValue(stn));
+		else if (type == MetricSymbolStore.MULTIPLY)
+			return first.getMinValue(stn).multiply(second.getMinValue(stn));
+		else if (type == MetricSymbolStore.DIVIDE)
+			return first.getMinValue(stn).divide(second.getMaxValue(stn),
+					MetricSymbolStore.SCALE, MetricSymbolStore.ROUND);
+		else
+			return null;
 	}
 }

@@ -36,30 +36,33 @@ import java.util.Map;
 
 public class NumberFunction implements Function
 {
-    final protected BigDecimal num;
+	final protected BigDecimal num;
 
-    public NumberFunction(double d)
-    {
+	public NumberFunction(double d)
+	{
 		num = new BigDecimal(d);
-    }
+	}
 
 	public NumberFunction(BigDecimal d)
 	{
-		num = d;
+		if (d != null)
+			num = d;
+		else
+			num = new BigDecimal(0);
 	}
 
-    public BigDecimal getValue(MetricState s)
-    {
+	public BigDecimal getValue(MetricState s)
+	{
 		return num;
-    }
+	}
 
 	public BigDecimal getMaxValue(MatrixSTN stn)
-    {
+	{
 		return getValue(null);
 	}
 
 	public BigDecimal getMinValue(MatrixSTN stn)
-    {
+	{
 		return getValue(null);
 	}
 
@@ -73,20 +76,20 @@ public class NumberFunction implements Function
 		return this;
 	}
 
-    public String toString()
-    {
+	public String toString()
+	{
 		return num.toString();
-    }
+	}
 
 	public String toStringTyped()
-    {
+	{
 		return toString();
-    }
+	}
 
 	public boolean isStatic()
-    {
+	{
 		return true;
-    }
+	}
 
 	public boolean effectedBy(ResourceOperator ro)
 	{
@@ -109,7 +112,7 @@ public class NumberFunction implements Function
 		{
 			NumberFunction nf = (NumberFunction) obj;
 			return num.equals(nf.num);
-		}
-		else return false;
+		} else
+			return false;
 	}
 }

@@ -28,10 +28,12 @@
 
 package javaff.scheduling;
 
+import javaff.data.Fact;
 import javaff.data.TotalOrderPlan;
 import javaff.data.PartialOrderPlan;
 import javaff.data.GroundProblem;
 import javaff.data.Action;
+import javaff.data.strips.Not;
 import javaff.data.strips.Proposition;
 
 import java.util.Set;
@@ -41,24 +43,23 @@ import java.util.ListIterator;
 
 public class GreedyPartialOrderLifter implements PartialOrderLifter
 {
-    //This could probably make use of the data structures in the relaxed plan graph
-    public static PartialOrderPlan lift(TotalOrderPlan top, GroundProblem problem)
-    {
-		/* WARNING - this code does not work, but should have something in instead
-        //Must create new instances for where the same action is performed more than once
-        List TOPlan = new ArrayList();
-        Iterator pit = pTOPlan.iterator();
-        while (pit.hasNext())
-        {
-            InstantAction a = (InstantAction) pit.next();
-            TOPlan.add(a.clone());
-        }
+	// This could probably make use of the data structures in the relaxed plan
+	// graph
+	public static PartialOrderPlan lift(TotalOrderPlan top,
+			GroundProblem problem)
+	{
+		/*
+		 * WARNING - this code does not work, but should have something in
+		 * instead //Must create new instances for where the same action is
+		 * performed more than once List TOPlan = new ArrayList(); Iterator pit =
+		 * pTOPlan.iterator(); while (pit.hasNext()) { InstantAction a =
+		 * (InstantAction) pit.next(); TOPlan.add(a.clone()); }
 		 */
 
-		PartialOrderPlan pop = new PartialOrderPlan();
-		pop.addActions(top.getActions());
+		PartialOrderPlan pop = new PartialOrderPlan(problem.getGoal());
+		pop.addActions(new HashSet(top.getActions()));
 
-		Set goals = new HashSet(problem.goal.getConditionalPropositions());
+		Set goals = new HashSet(problem.getGoal().getFacts());
 
 		ListIterator toit = top.listIteratorEnd();
 		while (toit.hasPrevious())
@@ -69,15 +70,16 @@ public class GreedyPartialOrderLifter implements PartialOrderLifter
 			getBOrderings(a, top, pop);
 			getCOrderings(a, top, pop, goals);
 
-			goals.addAll(a.getConditionalPropositions());
+			goals.addAll(a.getPreconditions());
 		}
-		
+
 		return pop;
 	}
 
-	public static void getAOrderings(Action a, TotalOrderPlan top, PartialOrderPlan pop)
-    {
-		Iterator cit = a.getConditionalPropositions().iterator();
+	public static void getAOrderings(Action a, TotalOrderPlan top,
+			PartialOrderPlan pop)
+	{
+		Iterator cit = a.getPreconditions().iterator();
 		while (cit.hasNext())
 		{
 			Proposition c = (Proposition) cit.next();
@@ -88,34 +90,44 @@ public class GreedyPartialOrderLifter implements PartialOrderLifter
 				Set achieves = b.getAddPropositions();
 				if (achieves.contains(c))
 				{
-					pop.addOrder(b,a,c);
+					pop.addOrder(b, a, c);
 					break;
-				}
-			}
-		}
-    }
-
-	public static void getBOrderings(Action a, TotalOrderPlan top, PartialOrderPlan pop)
-    {
-		Iterator dit = a.getDeletePropositions().iterator();
-		while (dit.hasNext())
-		{
-			Proposition d = (Proposition) dit.next();
-			ListIterator bit = top.listIterator(a);
-			while (bit.hasPrevious())
-			{
-				Action b = (Action) bit.previous();
-				Set conds = b.getConditionalPropositions();
-				if (conds.contains(d))
-				{
-					pop.addOrder(b,a,d);
 				}
 			}
 		}
 	}
 
-	public static void getCOrderings(Action a, TotalOrderPlan top, PartialOrderPlan pop, Set goals)
-    {
+	public static void getBOrderings(Action a, TotalOrderPlan top,
+			PartialOrderPlan pop)
+	{
+		Iterator dit = a.getDeletePropositions().iterator();
+		while (dit.hasNext())
+		{
+			Fact n = (Fact) dit.next();
+			Proposition d = null;
+			if (n instanceof Proposition)
+				d = (Proposition) n;
+			else if (n instanceof Not)
+				d = (Proposition) ((Not)n).getLiteral();
+			else
+				throw new ClassCastException("Unknown delete type");
+			
+			ListIterator bit = top.listIterator(a);
+			while (bit.hasPrevious())
+			{
+				Action b = (Action) bit.previous();
+				Set conds = b.getPreconditions();
+				if (conds.contains(d))
+				{
+					pop.addOrder(b, a, d);
+				}
+			}
+		}
+	}
+
+	public static void getCOrderings(Action a, TotalOrderPlan top,
+			PartialOrderPlan pop, Set goals)
+	{
 		Set as = a.getAddPropositions();
 		as.retainAll(goals);
 		Iterator adit = as.iterator();
@@ -129,7 +141,7 @@ public class GreedyPartialOrderLifter implements PartialOrderLifter
 				Set dels = b.getDeletePropositions();
 				if (dels.contains(ad))
 				{
-					pop.addOrder(b,a,ad);
+					pop.addOrder(b, a, ad);
 				}
 			}
 		}

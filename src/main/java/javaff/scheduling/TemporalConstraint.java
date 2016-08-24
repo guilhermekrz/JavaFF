@@ -36,7 +36,7 @@ import java.math.BigDecimal;
 
 public class TemporalConstraint extends Constraint
 {
-	InstantAction x,y;
+	InstantAction x, y;
 	BigDecimal b;
 
 	public TemporalConstraint(InstantAction X, InstantAction Y, BigDecimal B)
@@ -46,27 +46,33 @@ public class TemporalConstraint extends Constraint
 		b = B;
 	}
 
-	public static TemporalConstraint getConstraint(InstantAction first, InstantAction second)
+	public static TemporalConstraint getConstraint(InstantAction first,
+			InstantAction second)
 	{
-		return new TemporalConstraint(first, second, javaff.JavaFF.EPSILON.negate());
+		return new TemporalConstraint(first, second, javaff.JavaFF.EPSILON
+				.negate());
 	}
 
-	public static TemporalConstraint getConstraintEqual(InstantAction first, InstantAction second)
+	public static TemporalConstraint getConstraintEqual(InstantAction first,
+			InstantAction second)
 	{
 		return new TemporalConstraint(first, second, new BigDecimal(0));
 	}
 
-	public static TemporalConstraint getConstraintMax(InstantAction first, InstantAction second, BigDecimal max)
+	public static TemporalConstraint getConstraintMax(InstantAction first,
+			InstantAction second, BigDecimal max)
 	{
 		return new TemporalConstraint(second, first, max);
 	}
 
-	public static TemporalConstraint getConstraintMin(InstantAction first, InstantAction second, BigDecimal min)
-	{          
-                return new TemporalConstraint(first, second, min.negate());
+	public static TemporalConstraint getConstraintMin(InstantAction first,
+			InstantAction second, BigDecimal min)
+	{
+		return new TemporalConstraint(first, second, min.negate());
 	}
-	
-	public static List getExactly(InstantAction first, InstantAction second, BigDecimal value)
+
+	public static List getExactly(InstantAction first, InstantAction second,
+			BigDecimal value)
 	{
 		List rList = new ArrayList(2);
 		rList.add(getConstraintMax(first, second, value));
@@ -74,17 +80,18 @@ public class TemporalConstraint extends Constraint
 		return rList;
 	}
 
-	public static List getBounds(InstantAction first, InstantAction second, BigDecimal max, BigDecimal min)
+	public static List getBounds(InstantAction first, InstantAction second,
+			BigDecimal max, BigDecimal min)
 	{
 		List rList = new ArrayList(2);
 		rList.add(getConstraintMax(first, second, max));
 		rList.add(getConstraintMin(first, second, min));
 		return rList;
 	}
-		
+
 	public String toString()
 	{
-		return (x.toString() + " - " + y.toString() +" <= "+b.toString());
+		return (x.toString() + " - " + y.toString() + " <= " + b.toString());
 	}
 
 	public boolean equals(Object obj)

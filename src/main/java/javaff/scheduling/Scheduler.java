@@ -33,5 +33,5 @@ import javaff.data.TimeStampedPlan;
 
 public interface Scheduler
 {
-	public TimeStampedPlan schedule(TotalOrderPlan top);
+	public TimeStampedPlan schedule(TotalOrderPlan top) throws SchedulingException;
 }

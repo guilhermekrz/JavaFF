@@ -37,77 +37,95 @@ public interface PDDL21parserConstants {
   /** RegularExpression Id. */
   int NON_HANDLED_LABELS = 17;
   /** RegularExpression Id. */
-  int TYPES = 18;
+  int PDDL_1_7_LABELS = 18;
   /** RegularExpression Id. */
-  int EITHER = 19;
+  int TYPES = 19;
   /** RegularExpression Id. */
-  int CONSTANTS = 20;
+  int EITHER = 20;
   /** RegularExpression Id. */
-  int PREDICATES = 21;
+  int CONSTANTS = 21;
   /** RegularExpression Id. */
-  int FUNCTIONS = 22;
+  int PREDICATES = 22;
   /** RegularExpression Id. */
-  int ACTION = 23;
+  int FUNCTIONS = 23;
   /** RegularExpression Id. */
-  int DURATIVE_ACTION = 24;
+  int ACTION = 24;
   /** RegularExpression Id. */
-  int PARAMETERS = 25;
+  int DURATIVE_ACTION = 25;
   /** RegularExpression Id. */
-  int DURATION = 26;
+  int PARAMETERS = 26;
   /** RegularExpression Id. */
-  int DUR_VAR = 27;
+  int DURATION = 27;
   /** RegularExpression Id. */
-  int PRECONDITION = 28;
+  int DUR_VAR = 28;
   /** RegularExpression Id. */
-  int CONDITION = 29;
+  int PRECONDITION = 29;
   /** RegularExpression Id. */
-  int EFFECT = 30;
+  int CONDITION = 30;
   /** RegularExpression Id. */
-  int AND = 31;
+  int EFFECT = 31;
   /** RegularExpression Id. */
-  int NOT = 32;
+  int AT = 32;
   /** RegularExpression Id. */
-  int OVER_ALL = 33;
+  int AT_TIL = 33;
   /** RegularExpression Id. */
-  int AT_START = 34;
+  int AND = 34;
   /** RegularExpression Id. */
-  int AT_END = 35;
+  int OR = 35;
   /** RegularExpression Id. */
-  int EQUALS = 36;
+  int NOT = 36;
   /** RegularExpression Id. */
-  int TYPE_IDENT = 37;
+  int IMPLY = 37;
   /** RegularExpression Id. */
-  int BINARY_OP = 38;
+  int OVER_ALL = 38;
   /** RegularExpression Id. */
-  int BINARY_COMP = 39;
+  int AT_START = 39;
   /** RegularExpression Id. */
-  int ASSIGN_OP = 40;
+  int AT_END = 40;
   /** RegularExpression Id. */
-  int ASSIGN = 41;
+  int FOR_ALL = 41;
   /** RegularExpression Id. */
-  int SCALE_UP = 42;
+  int EXISTS = 42;
   /** RegularExpression Id. */
-  int SCALE_DOWN = 43;
+  int WHEN = 43;
   /** RegularExpression Id. */
-  int INCREASE = 44;
+  int EQUALS = 44;
   /** RegularExpression Id. */
-  int DECREASE = 45;
+  int TYPE_IDENT = 45;
   /** RegularExpression Id. */
-  int OPTIMIZATION = 46;
+  int BINARY_OP = 46;
   /** RegularExpression Id. */
-  int MINIMIZE = 47;
+  int BINARY_COMP = 47;
   /** RegularExpression Id. */
-  int MAXIMIZE = 48;
+  int ASSIGN_OP = 48;
   /** RegularExpression Id. */
-  int TOTAL_TIME = 49;
+  int ASSIGN = 49;
   /** RegularExpression Id. */
-  int VAR = 50;
+  int SCALE_UP = 50;
   /** RegularExpression Id. */
-  int NUMBER = 51;
+  int SCALE_DOWN = 51;
   /** RegularExpression Id. */
-  int NAME = 52;
+  int INCREASE = 52;
   /** RegularExpression Id. */
-  int SINGLE_LINE_COMMENT = 53;
+  int DECREASE = 53;
+  /** RegularExpression Id. */
+  int OPTIMIZATION = 54;
+  /** RegularExpression Id. */
+  int MINIMIZE = 55;
+  /** RegularExpression Id. */
+  int MAXIMIZE = 56;
+  /** RegularExpression Id. */
+  int TOTAL_TIME = 57;
+  /** RegularExpression Id. */
+  int NUMBER_TYPE = 58;
+  /** RegularExpression Id. */
+  int VAR = 59;
+  /** RegularExpression Id. */
+  int NUMBER = 60;
+  /** RegularExpression Id. */
+  int NAME = 61;
+  /** RegularExpression Id. */
+  int SINGLE_LINE_COMMENT = 62;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -132,6 +150,7 @@ public interface PDDL21parserConstants {
     "\":requirements\"",
     "<REQUIREMENT_LABELS>",
     "<NON_HANDLED_LABELS>",
+    "<PDDL_1_7_LABELS>",
     "\":types\"",
     "\"either\"",
     "\":constants\"",
@@ -145,11 +164,18 @@ public interface PDDL21parserConstants {
     "\":precondition\"",
     "\":condition\"",
     "\":effect\"",
+    "\": at\"",
+    "\"at <NUMBER>\"",
     "\"and\"",
+    "\"or\"",
     "\"not\"",
+    "\"imply\"",
     "\"over all\"",
     "\"at start\"",
     "\"at end\"",
+    "\"forall\"",
+    "\"exists\"",
+    "\"when\"",
     "\"=\"",
     "\"-\"",
     "<BINARY_OP>",
@@ -164,6 +190,7 @@ public interface PDDL21parserConstants {
     "\"minimize\"",
     "\"maximize\"",
     "\"total-time\"",
+    "\"number\"",
     "<VAR>",
     "<NUMBER>",
     "<NAME>",

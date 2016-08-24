@@ -40,15 +40,15 @@ import java.math.BigDecimal;
 public class DurationFunction extends NamedFunction
 {
 	public DurativeAction durativeAction;
-	UngroundDurativeAction ungroundDurativeAction;        //horrible hack
-	
+	UngroundDurativeAction ungroundDurativeAction; // horrible hack
+
 	public DurationFunction(DurativeAction da)
-    {
+	{
 		durativeAction = da;
 	}
 
 	public DurationFunction(UngroundDurativeAction uda)
-    {
+	{
 		ungroundDurativeAction = uda;
 	}
 
@@ -73,20 +73,19 @@ public class DurationFunction extends NamedFunction
 		{
 			BigDecimal d = getValue(null);
 			return new NumberFunction(d);
-		}
-		else return this;
+		} else
+			return this;
 	}
 
 	public Function makeOnlyDurationDependent(MetricState s)
 	{
 		return this;
 	}
-	
+
 	public Function ground(Map varMap)
 	{
 		return (Function) varMap.get(this);
 	}
-
 
 	public String toString()
 	{
@@ -101,8 +100,10 @@ public class DurationFunction extends NamedFunction
 	public int hashCode()
 	{
 		int hash = 7;
-		if (durativeAction != null) hash = 31 * hash ^ durativeAction.hashCode();
-		else  hash = 31 * hash ^ ungroundDurativeAction.hashCode();
+		if (durativeAction != null)
+			hash = 31 * hash ^ durativeAction.hashCode();
+		else
+			hash = 31 * hash ^ ungroundDurativeAction.hashCode();
 		return hash;
 	}
 
@@ -111,11 +112,15 @@ public class DurationFunction extends NamedFunction
 		if (obj instanceof DurationFunction)
 		{
 			DurationFunction f = (DurationFunction) obj;
-			if (f.durativeAction != null && durativeAction != null) return durativeAction.equals(f.durativeAction);
-			else if (f.ungroundDurativeAction != null && ungroundDurativeAction != null) return ungroundDurativeAction.equals(f.ungroundDurativeAction);
-			else return false;
-		}
-		else return false;
+			if (f.durativeAction != null && durativeAction != null)
+				return durativeAction.equals(f.durativeAction);
+			else if (f.ungroundDurativeAction != null
+					&& ungroundDurativeAction != null)
+				return ungroundDurativeAction.equals(f.ungroundDurativeAction);
+			else
+				return false;
+		} else
+			return false;
 	}
 
 }

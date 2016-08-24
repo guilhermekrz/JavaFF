@@ -43,14 +43,17 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.math.BigDecimal;
 
-//OK for new precedence relations (i.e. meetCosntraints) should move consumers to AFTER the >= etc..) (actually maybe no)
-// AND for the new bounds should do incremental sweeps as in precedence relations
+// OK for new precedence relations (i.e. meetCosntraints) should move consumers
+// to AFTER the >= etc..) (actually maybe no)
+// AND for the new bounds should do incremental sweeps as in precedence
+// relations
 
 public class PrecedenceResourceGraph
 {
 	public Map operators = new Hashtable();
 	public Map conditions = new Hashtable();
-	public Map states = new Hashtable();          // Maps (Operators || Conditions => States)
+	public Map states = new Hashtable(); // Maps (Operators || Conditions =>
+											// States)
 
 	public MatrixSTN stn;
 
@@ -78,30 +81,33 @@ public class PrecedenceResourceGraph
 			BinaryComparator bc = (BinaryComparator) bcit.next();
 			BigDecimal comp = bc.second.getValue(null);
 			Action a = (Action) conditions.get(bc);
-			
-			if (bc.type == MetricSymbolStore.LESS_THAN || bc.type == MetricSymbolStore.LESS_THAN_EQUAL)
+
+			if (bc.type == MetricSymbolStore.LESS_THAN
+					|| bc.type == MetricSymbolStore.LESS_THAN_EQUAL)
 			{
 				BigDecimal value = findBeforeMin(a);
 
 				if (value.compareTo(comp) >= 0)
 				{
-					//move an unordered consumer back
+					// move an unordered consumer back
 					Set u = getUnorderedConsumers(a);
 					Action a2 = stn.getEarliest(u);
-					stn.addConstraint(TemporalConstraint.getConstraint((InstantAction)a2, (InstantAction)a));
+					stn.addConstraint(TemporalConstraint.getConstraint(
+							(InstantAction) a2, (InstantAction) a));
 					changed = true;
 				}
-			}
-			else if (bc.type == MetricSymbolStore.GREATER_THAN || bc.type == MetricSymbolStore.GREATER_THAN_EQUAL)
+			} else if (bc.type == MetricSymbolStore.GREATER_THAN
+					|| bc.type == MetricSymbolStore.GREATER_THAN_EQUAL)
 			{
 				BigDecimal value = findBeforeMax(a);
 				if (value.compareTo(comp) <= 0)
 				{
-					//move an unordered producer back
+					// move an unordered producer back
 					Set u = getUnorderedProducers(a);
 					Action a2 = stn.getEarliest(u);
-					stn.addConstraint(TemporalConstraint.getConstraint((InstantAction)a2, (InstantAction)a));
-					changed = true;	
+					stn.addConstraint(TemporalConstraint.getConstraint(
+							(InstantAction) a2, (InstantAction) a));
+					changed = true;
 				}
 			}
 		}
@@ -116,14 +122,20 @@ public class PrecedenceResourceGraph
 		{
 			ResourceOperator ro = (ResourceOperator) opit.next();
 			Action a2 = (Action) operators.get(ro);
-			if (ro.type == MetricSymbolStore.INCREASE || ro.type == MetricSymbolStore.SCALE_UP)
+			if (ro.type == MetricSymbolStore.INCREASE
+					|| ro.type == MetricSymbolStore.SCALE_UP)
 			{
-				if (stn.B(a2,a) || stn.BS(a2,a) ) value = ro.applyMax(value, stn); // WARNING This is not taking into the account the order of the actions
+				if (stn.B(a2, a) || stn.BS(a2, a))
+					value = ro.applyMax(value, stn); // WARNING This is not
+														// taking into the
+														// account the order of
+														// the actions
 
-			}
-			else if (ro.type == MetricSymbolStore.DECREASE || ro.type == MetricSymbolStore.SCALE_DOWN)
+			} else if (ro.type == MetricSymbolStore.DECREASE
+					|| ro.type == MetricSymbolStore.SCALE_DOWN)
 			{
-				if (stn.B(a2,a)) value = ro.applyMin(value, stn);
+				if (stn.B(a2, a))
+					value = ro.applyMin(value, stn);
 			}
 		}
 		return value;
@@ -137,19 +149,24 @@ public class PrecedenceResourceGraph
 		{
 			ResourceOperator ro = (ResourceOperator) opit.next();
 			Action a2 = (Action) operators.get(ro);
-			if (ro.type == MetricSymbolStore.INCREASE || ro.type == MetricSymbolStore.SCALE_UP)
+			if (ro.type == MetricSymbolStore.INCREASE
+					|| ro.type == MetricSymbolStore.SCALE_UP)
 			{
-				if (stn.B(a2,a)) value = ro.applyMin(value, stn); // WARNING This is not taking into the account the order of the actions
-			}
-			else if (ro.type == MetricSymbolStore.DECREASE || ro.type == MetricSymbolStore.SCALE_DOWN)
+				if (stn.B(a2, a))
+					value = ro.applyMin(value, stn); // WARNING This is not
+														// taking into the
+														// account the order of
+														// the actions
+			} else if (ro.type == MetricSymbolStore.DECREASE
+					|| ro.type == MetricSymbolStore.SCALE_DOWN)
 			{
-				if (stn.B(a2,a) || stn.BS(a2,a)) value = ro.applyMax(value, stn);
+				if (stn.B(a2, a) || stn.BS(a2, a))
+					value = ro.applyMax(value, stn);
 			}
 		}
 		return value;
 	}
 
-	
 	private Set getUnorderedProducers(Action a)
 	{
 		Set rSet = new HashSet();
@@ -158,9 +175,11 @@ public class PrecedenceResourceGraph
 		{
 			ResourceOperator ro = (ResourceOperator) opit.next();
 			Action a2 = (Action) operators.get(ro);
-			if (ro.type == MetricSymbolStore.INCREASE || ro.type == MetricSymbolStore.SCALE_UP)
+			if (ro.type == MetricSymbolStore.INCREASE
+					|| ro.type == MetricSymbolStore.SCALE_UP)
 			{
-				if (stn.U(a2,a)) rSet.add(a2);
+				if (stn.U(a2, a))
+					rSet.add(a2);
 			}
 		}
 		return rSet;
@@ -174,9 +193,11 @@ public class PrecedenceResourceGraph
 		{
 			ResourceOperator ro = (ResourceOperator) opit.next();
 			Action a2 = (Action) operators.get(ro);
-			if (ro.type == MetricSymbolStore.DECREASE || ro.type == MetricSymbolStore.SCALE_DOWN)
+			if (ro.type == MetricSymbolStore.DECREASE
+					|| ro.type == MetricSymbolStore.SCALE_DOWN)
 			{
-				if (stn.U(a2,a)) rSet.add(a2);
+				if (stn.U(a2, a))
+					rSet.add(a2);
 			}
 		}
 		return rSet;
@@ -195,8 +216,6 @@ public class PrecedenceResourceGraph
 		return rSet;
 	}
 
-	
-
 	public boolean limitBounds()
 	{
 		boolean change = false;
@@ -208,13 +227,14 @@ public class PrecedenceResourceGraph
 			BigDecimal comp = bc.second.getValue(null);
 			Action a = (Action) conditions.get(bc);
 
-			if (bc.type == MetricSymbolStore.LESS_THAN || bc.type == MetricSymbolStore.LESS_THAN_EQUAL)
+			if (bc.type == MetricSymbolStore.LESS_THAN
+					|| bc.type == MetricSymbolStore.LESS_THAN_EQUAL)
 			{
 				BigDecimal value = findBeforeMax(a);
 				if (value.compareTo(comp) > 0)
 				{
 					BigDecimal diff = value.subtract(comp);
-					//change an before producers back
+					// change an before producers back
 					Set u = getBeforeOperators(a);
 					Iterator uit = u.iterator();
 					while (uit.hasNext())
@@ -224,8 +244,12 @@ public class PrecedenceResourceGraph
 						{
 							DurationFunction df = (DurationFunction) ro.change;
 							DurativeAction da = df.durativeAction;
-							if (ro.type == MetricSymbolStore.INCREASE || ro.type == MetricSymbolStore.SCALE_UP) stn.decreaseMax(da, diff);
-							else if (ro.type == MetricSymbolStore.DECREASE || ro.type == MetricSymbolStore.SCALE_DOWN) stn.increaseMin(da, diff);
+							if (ro.type == MetricSymbolStore.INCREASE
+									|| ro.type == MetricSymbolStore.SCALE_UP)
+								stn.decreaseMax(da, diff);
+							else if (ro.type == MetricSymbolStore.DECREASE
+									|| ro.type == MetricSymbolStore.SCALE_DOWN)
+								stn.increaseMin(da, diff);
 							change = true;
 							break;
 						}
@@ -233,14 +257,14 @@ public class PrecedenceResourceGraph
 				}
 			}
 
-			
-			else if (bc.type == MetricSymbolStore.GREATER_THAN || bc.type == MetricSymbolStore.GREATER_THAN_EQUAL)
+			else if (bc.type == MetricSymbolStore.GREATER_THAN
+					|| bc.type == MetricSymbolStore.GREATER_THAN_EQUAL)
 			{
 				BigDecimal value = findBeforeMin(a);
 				if (value.compareTo(comp) < 0)
 				{
 					BigDecimal diff = comp.subtract(value);
-					//change an before producers back
+					// change an before producers back
 					Set u = getBeforeOperators(a);
 					Iterator uit = u.iterator();
 					while (uit.hasNext())
@@ -250,8 +274,12 @@ public class PrecedenceResourceGraph
 						{
 							DurationFunction df = (DurationFunction) ro.change;
 							DurativeAction da = df.durativeAction;
-							if (ro.type == MetricSymbolStore.INCREASE || ro.type == MetricSymbolStore.SCALE_UP) stn.increaseMin(da, diff);
-							else if (ro.type == MetricSymbolStore.DECREASE || ro.type == MetricSymbolStore.SCALE_DOWN) stn.decreaseMax(da, diff);
+							if (ro.type == MetricSymbolStore.INCREASE
+									|| ro.type == MetricSymbolStore.SCALE_UP)
+								stn.increaseMin(da, diff);
+							else if (ro.type == MetricSymbolStore.DECREASE
+									|| ro.type == MetricSymbolStore.SCALE_DOWN)
+								stn.decreaseMax(da, diff);
 							change = true;
 							break;
 						}
@@ -270,12 +298,13 @@ public class PrecedenceResourceGraph
 			ResourceOperator ro = (ResourceOperator) roit.next();
 			if (ro.change instanceof DurationFunction)
 			{
-				DurativeAction da = ((DurationFunction)ro.change).durativeAction;
-				if (ro.type == MetricSymbolStore.INCREASE || ro.type == MetricSymbolStore.SCALE_UP)
+				DurativeAction da = ((DurationFunction) ro.change).durativeAction;
+				if (ro.type == MetricSymbolStore.INCREASE
+						|| ro.type == MetricSymbolStore.SCALE_UP)
 				{
 					stn.minimize(da);
-				}
-				else if (ro.type == MetricSymbolStore.DECREASE || ro.type == MetricSymbolStore.SCALE_DOWN)
+				} else if (ro.type == MetricSymbolStore.DECREASE
+						|| ro.type == MetricSymbolStore.SCALE_DOWN)
 				{
 					stn.maximize(da);
 				}
@@ -291,17 +320,18 @@ public class PrecedenceResourceGraph
 			ResourceOperator ro = (ResourceOperator) roit.next();
 			if (ro.change instanceof DurationFunction)
 			{
-				DurativeAction da = ((DurationFunction)ro.change).durativeAction;
-				if (ro.type == MetricSymbolStore.INCREASE || ro.type == MetricSymbolStore.SCALE_UP)
+				DurativeAction da = ((DurationFunction) ro.change).durativeAction;
+				if (ro.type == MetricSymbolStore.INCREASE
+						|| ro.type == MetricSymbolStore.SCALE_UP)
 				{
 					stn.maximize(da);
-				}
-				else if (ro.type == MetricSymbolStore.DECREASE || ro.type == MetricSymbolStore.SCALE_DOWN)
+				} else if (ro.type == MetricSymbolStore.DECREASE
+						|| ro.type == MetricSymbolStore.SCALE_DOWN)
 				{
 					stn.minimize(da);
 				}
 			}
 		}
 	}
-	
+
 }

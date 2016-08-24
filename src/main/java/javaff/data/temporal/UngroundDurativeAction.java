@@ -26,22 +26,24 @@
  * 
  ************************************************************************/
 
-
 package javaff.data.temporal;
 
 import javaff.data.PDDLPrinter;
 import javaff.data.strips.Operator;
+import javaff.data.strips.Proposition;
+import javaff.data.strips.And;
 import javaff.data.strips.UngroundInstantAction;
 import javaff.data.strips.PredicateSymbol;
-import javaff.data.strips.AND;
-import javaff.data.strips.NOT;
+import javaff.data.strips.And;
+import javaff.data.strips.Not;
 import javaff.data.strips.PDDLObject;
 import javaff.data.strips.Variable;
 import javaff.data.strips.Predicate;
 import javaff.data.strips.OperatorName;
 import javaff.data.Action;
-import javaff.data.UngroundCondition;
-import javaff.data.UngroundEffect;
+import javaff.data.Fact;
+import javaff.data.UngroundFact;
+
 
 import java.util.Map;
 import java.util.Set;
@@ -49,16 +51,16 @@ import java.util.Iterator;
 
 public class UngroundDurativeAction extends Operator
 {
-    public DurationFunction duration;
+	public DurationFunction duration;
 
 	public DurationConstraint durationConstraint;
 
-    public UngroundCondition startCondition = new AND();
-    public UngroundCondition endCondition = new AND();
-    public UngroundCondition invariant = new AND();
+	public UngroundFact startCondition = new And();
+	public UngroundFact endCondition = new And();
+	public UngroundFact invariant = new And();
 
-    public UngroundEffect startEffect = new AND();
-    public UngroundEffect endEffect = new AND();
+	public UngroundFact startEffect = new And();
+	public UngroundFact endEffect = new And();
 
 	public UngroundInstantAction startAction;
 	public UngroundInstantAction endAction;
@@ -79,94 +81,93 @@ public class UngroundDurativeAction extends Operator
 	public Action ground(Map varMap)
 	{
 		DurativeAction a = new DurativeAction();
-		a.name = this.name;
+		a.setName(this.name);
 
 		Iterator pit = params.iterator();
 		while (pit.hasNext())
 		{
 			Variable v = (Variable) pit.next();
 			PDDLObject o = (PDDLObject) varMap.get(v);
-			a.params.add(o);
+			a.getParameters().add(o);
 		}
-		
+
 		varMap.put(duration, a.duration);
-		
+
 		a.duration = (DurationFunction) duration.ground(varMap);
-		a.startCondition = startCondition.groundCondition(varMap);
-		a.endCondition = endCondition.groundCondition(varMap);
-		a.invariant = invariant.groundCondition(varMap);
-		a.startEffect = startEffect.groundEffect(varMap);
-		a.endEffect = endEffect.groundEffect(varMap);
+		a.startCondition = startCondition.ground(varMap);
+		a.endCondition = endCondition.ground(varMap);
+		a.invariant = invariant.ground(varMap);
+		a.startEffect = startEffect.ground(varMap);
+		a.endEffect = endEffect.ground(varMap);
 
 		a.durationConstraint = durationConstraint.ground(varMap);
 
 		a.startAction = new StartInstantAction();
 		startAction.ground(varMap, a.startAction);
 
-		a.endAction =  new EndInstantAction();
+		a.endAction = new EndInstantAction();
 		endAction.ground(varMap, a.endAction);
 
-		a.dummyJoin = dummyJoin.ground(varMap);
-		a.dummyGoal = dummyGoal.ground(varMap);
+		a.dummyJoin = (Proposition) dummyJoin.ground(varMap);
+		a.dummyGoal = (Proposition) dummyGoal.ground(varMap);
 
 		a.startAction.parent = a;
 		a.endAction.parent = a;
-		
+
 		return a;
 	}
 
-	
-	 public void makeInstants()
+	public void makeInstants()
 	{
-		 PredicateSymbol ps = new PredicateSymbol("i"+name);
-		 Predicate j = new Predicate(ps);
-		 j.addParameters(params);
-		 dummyJoin = j;
+		PredicateSymbol ps = new PredicateSymbol("i" + name);
+		Predicate j = new Predicate(ps);
+		j.addParameters(params);
+		dummyJoin = j;
 
-		 PredicateSymbol ps2 = new PredicateSymbol("g"+name);
-		 Predicate g = new Predicate(ps2);
-		 g.addParameters(params);
-		 dummyGoal = g;
-		 
-		 startAction = new UngroundInstantAction();
-		 startAction.name = new OperatorName(name.toString()+"_START");
-		 startAction.params = params;
-		 AND s = new AND();
-		 s.add(startCondition);
-		 s.add(invariant.minus(startEffect));
-		 startAction.condition = s;
-		 AND se = new AND();
-		 startAction.effect = se;
-		 se.add(startEffect);
-		 se.add(j); 
-		 se.add(new NOT(g));
+		PredicateSymbol ps2 = new PredicateSymbol("g" + name);
+		Predicate g = new Predicate(ps2);
+		g.addParameters(params);
+		dummyGoal = g;
 
-		 endAction = new UngroundInstantAction();
-		 endAction.name = new OperatorName(name.toString()+"_END");
-		 endAction.params = params;
-		 AND e = new AND();
-		 e.add(endCondition);
-		 e.add(invariant);
-		 e.add(j);
-		 endAction.condition = e;
-		 AND ee = new AND();
-		 endAction.effect = ee;
-		 ee.add(endEffect);
-		 ee.add(g); 
-		 ee.add(new NOT(j));
+		startAction = new UngroundInstantAction();
+		startAction.name = new OperatorName(name.toString() + "_START");
+		startAction.params = params;
+		And s = new And();
+		s.add(startCondition);
+		s.add(invariant.minus(startEffect));
+		startAction.condition = s;
+		And se = new And();
+		startAction.effect = se;
+		se.add(startEffect);
+		se.add(j);
+		se.add(new Not(g));
 
-	 }
-	 
+		endAction = new UngroundInstantAction();
+		endAction.name = new OperatorName(name.toString() + "_END");
+		endAction.params = params;
+		And e = new And();
+		e.add(endCondition);
+		e.add(invariant);
+		e.add(j);
+		endAction.condition = e;
+		And ee = new And();
+		endAction.effect = ee;
+		ee.add(endEffect);
+		ee.add(g);
+		ee.add(new Not(j));
 
-	public Set getStaticConditionPredicates()
+	}
+
+	public Set<Fact> getStaticConditionPredicates()
 	{
-		Set rSet = startCondition.getStaticPredicates();
+		Set<Fact> rSet = startCondition.getStaticPredicates();
 		rSet.addAll(endCondition.getStaticPredicates());
 		rSet.addAll(invariant.getStaticPredicates());
 		return rSet;
 	}
 
-	//WARNING - This is right either (at start condition) (at end effect) etc....
+	// WARNING - This is right either (at start condition) (at end effect)
+	// etc....
 	public void PDDLPrint(java.io.PrintStream p, int indent)
 	{
 		p.println();
@@ -174,21 +175,22 @@ public class UngroundDurativeAction extends Operator
 		p.print("(:durative-action ");
 		p.print(name);
 		p.println();
-		PDDLPrinter.printIndent(p, indent+1);
+		PDDLPrinter.printIndent(p, indent + 1);
 		p.print(":parameters(\n");
-		PDDLPrinter.printToString(params, p, true, false, indent+2);
+		PDDLPrinter.printToString(params, p, true, false, indent + 2);
 		p.println(")");
-		PDDLPrinter.printIndent(p, indent+1);
+		PDDLPrinter.printIndent(p, indent + 1);
 		p.print(":duration(\n");
-		PDDLPrinter.printToString(durationConstraint, p, true, false, indent+2);
+		PDDLPrinter.printToString(durationConstraint, p, true, false,
+				indent + 2);
 		p.println(")");
-		PDDLPrinter.printIndent(p, indent+1);
+		PDDLPrinter.printIndent(p, indent + 1);
 		p.print(":condition");
-		//condition.PDDLPrint(p, indent+2);
+		// condition.PDDLPrint(p, indent+2);
 		p.println();
-		PDDLPrinter.printIndent(p, indent+1);
+		PDDLPrinter.printIndent(p, indent + 1);
 		p.print(":effect");
-		//effect.PDDLPrint(p, indent+2);
+		// effect.PDDLPrint(p, indent+2);
 		p.print(")");
 	}
 
@@ -206,7 +208,28 @@ public class UngroundDurativeAction extends Operator
 		{
 			UngroundDurativeAction a = (UngroundDurativeAction) obj;
 			return (name.equals(a.name) && params.equals(a.params));
-		}
-		else return false;
+		} else
+			return false;
+	}
+
+	@Override
+	public Object clone()
+	{
+		UngroundDurativeAction a = new UngroundDurativeAction();
+		a.name = this.name;
+		a.params = this.params;
+		a.dummyGoal = this.dummyGoal;
+		a.dummyJoin = this.dummyJoin;
+		a.duration = this.duration;
+		a.durationConstraint = this.durationConstraint;
+		a.endAction = this.endAction;
+		a.endCondition = this.endCondition;
+		a.endEffect = this.endEffect;
+		a.invariant = this.invariant;
+		a.startAction = this.startAction;
+		a.startCondition = this.startCondition;
+		a.startEffect = this.startEffect;
+		
+		return a;
 	}
 }

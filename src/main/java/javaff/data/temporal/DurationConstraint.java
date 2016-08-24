@@ -69,7 +69,7 @@ public class DurationConstraint implements PDDLPrintable
 			SimpleDurationConstraint c = (SimpleDurationConstraint) cit.next();
 			dc.add((SimpleDurationConstraint) c.ground(varMap));
 		}
-		return dc;	
+		return dc;
 	}
 
 	public BigDecimal getDuration(MetricState ms)
@@ -127,7 +127,7 @@ public class DurationConstraint implements PDDLPrintable
 		str += ")";
 		return str;
 	}
-	
+
 	public String toStringTyped()
 	{
 		String str = "(and ";
@@ -154,7 +154,7 @@ public class DurationConstraint implements PDDLPrintable
 		{
 			DurationConstraint c = (DurationConstraint) obj;
 			return c.constraints.equals(constraints);
-		}
-		else return false;
+		} else
+			return false;
 	}
 }

@@ -33,6 +33,8 @@ import javaff.data.strips.InstantAction;
 import javaff.data.temporal.SplitInstantAction;
 import javaff.scheduling.TemporalConstraint;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Hashtable;
 import java.util.Set;
@@ -40,17 +42,80 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.io.PrintStream;
 import java.io.PrintWriter;
-
+import java.math.BigDecimal;
 
 public class PartialOrderPlan implements Plan
 {
 	public Map strictOrderings = new Hashtable();
 	public Map equalOrderings = new Hashtable();
 	public Set actions = new HashSet();
+	
+	private Fact goal;
 
-	public PartialOrderPlan()
+	public PartialOrderPlan(Fact goal)
 	{
+		this.setGoal(goal);
+	}
+	
+	@Override
+	public Plan clone()
+	{
+		PartialOrderPlan clone = new PartialOrderPlan((Fact) this.goal.clone());
+		clone.strictOrderings = new Hashtable(this.strictOrderings);
+		clone.equalOrderings = new Hashtable(this.equalOrderings);
+		clone.actions = new HashSet(this.actions);
 		
+		return clone;
+	}
+	
+	
+	/**
+	 * Returns the sum of all action-costs in this plan.
+	 */
+	@Override
+	public BigDecimal getCost()
+	{
+		BigDecimal cost = new BigDecimal(0);
+		for (Action a : this)
+		{
+			cost = cost.add(a.getCost());
+		}
+		
+		return cost;
+	}
+	
+	@Override
+	public Iterator<Action> iterator()
+	{
+		return this.getActions().iterator();
+	}
+	
+	@Override
+	public Fact getGoal()
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
+	public void setGoal(Fact g)
+	{
+		// TODO Auto-generated method stub
+		
+	}
+	
+	public int getActionCount()
+	{
+		return this.actions.size();
+	}
+	
+	/**
+	 * @see #getActionCount()
+	 */
+	@Override
+	public int getPlanLength()
+	{
+		return this.getActionCount();
 	}
 
 	public void addStrictOrdering(Action first, Action second)
@@ -61,8 +126,8 @@ public class PartialOrderPlan implements Plan
 		{
 			ord = new HashSet();
 			strictOrderings.put(first, ord);
-		}
-		else ord = (HashSet) o;
+		} else
+			ord = (HashSet) o;
 		ord.add(second);
 		actions.add(first);
 		actions.add(second);
@@ -76,8 +141,8 @@ public class PartialOrderPlan implements Plan
 		{
 			ord = new HashSet();
 			equalOrderings.put(first, ord);
-		}
-		else ord = (HashSet) o;
+		} else
+			ord = (HashSet) o;
 		ord.add(second);
 		actions.add(first);
 		actions.add(second);
@@ -93,7 +158,7 @@ public class PartialOrderPlan implements Plan
 				addEqualOrdering(first, second);
 				return;
 			}
-			
+
 		}
 
 		if (second instanceof SplitInstantAction)
@@ -105,28 +170,30 @@ public class PartialOrderPlan implements Plan
 				return;
 			}
 		}
-		
+
 		addStrictOrdering(first, second);
-		
-		
+
 	}
 
-	public void addAction(Action a)
+
+	public boolean addAction(Action a)
 	{
-		actions.add(a);
+		boolean res = actions.add(a);
 		strictOrderings.put(a, new HashSet());
 		equalOrderings.put(a, new HashSet());
+		return res;
 	}
 
 	public void addActions(Set s)
 	{
 		Iterator sit = s.iterator();
-		while (sit.hasNext()) addAction((Action) sit.next());
+		while (sit.hasNext())
+			addAction((Action) sit.next());
 	}
 
-	public Set getActions()
+	public List<Action> getActions()
 	{
-		return actions;
+		return new ArrayList<Action>(actions);
 	}
 
 	public Set getTemporalConstraints()
@@ -136,13 +203,14 @@ public class PartialOrderPlan implements Plan
 		while (ait.hasNext())
 		{
 			Action a = (Action) ait.next();
-			
+
 			Set ss = (HashSet) strictOrderings.get(a);
 			Iterator sit = ss.iterator();
 			while (sit.hasNext())
 			{
 				Action b = (Action) sit.next();
-				rSet.add(TemporalConstraint.getConstraint((InstantAction)a,(InstantAction)b));
+				rSet.add(TemporalConstraint.getConstraint((InstantAction) a,
+						(InstantAction) b));
 			}
 
 			Set es = (HashSet) equalOrderings.get(a);
@@ -150,11 +218,12 @@ public class PartialOrderPlan implements Plan
 			while (eit.hasNext())
 			{
 				Action b = (Action) eit.next();
-				rSet.add(TemporalConstraint.getConstraintEqual((InstantAction)a,(InstantAction)b));
+				rSet.add(TemporalConstraint.getConstraintEqual(
+						(InstantAction) a, (InstantAction) b));
 			}
 		}
 		return rSet;
-			
+
 	}
 
 	public void print(PrintStream p)
@@ -164,8 +233,9 @@ public class PartialOrderPlan implements Plan
 		{
 			Action a = (Action) sit.next();
 			p.println(a);
-			p.println("\tStrict Orderings: "+strictOrderings.get(a));
-			p.println("\tLess than or equal Orderings: "+equalOrderings.get(a));
+			p.println("\tStrict Orderings: " + strictOrderings.get(a));
+			p.println("\tLess than or equal Orderings: "
+					+ equalOrderings.get(a));
 		}
 	}
 
@@ -176,8 +246,9 @@ public class PartialOrderPlan implements Plan
 		{
 			Action a = (Action) sit.next();
 			p.println(a);
-			p.println("\tStrict Orderings: "+strictOrderings.get(a));
-			p.println("\tLess than or equal Orderings: "+equalOrderings.get(a));
+			p.println("\tStrict Orderings: " + strictOrderings.get(a));
+			p.println("\tLess than or equal Orderings: "
+					+ equalOrderings.get(a));
 		}
 	}
 }

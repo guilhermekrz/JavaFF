@@ -33,5 +33,6 @@ import java.io.PrintStream;
 public interface PDDLPrintable
 {
 	public void PDDLPrint(PrintStream p, int indent);
+
 	public String toStringTyped();
 }

@@ -29,6 +29,8 @@
 package javaff.data.strips;
 
 import javaff.data.Action;
+import javaff.data.Fact;
+import javaff.data.Parameter;
 import javaff.data.UngroundProblem;
 import java.util.Arrays;
 import java.util.Map;
@@ -41,136 +43,213 @@ import java.util.HashSet;
 
 public abstract class Operator implements javaff.data.PDDLPrintable
 {
-    public OperatorName name;
-    public List params = new ArrayList(); // list of Variables
+	public OperatorName name;
+	public List<Parameter> params = new ArrayList<Parameter>(); // list of Variables
 
-    public String toString()
-    {
+	public String toString()
+	{
 		String stringrep = name.toString();
-		Iterator i = params.iterator();
+		Iterator<Parameter> i = params.iterator();
 		while (i.hasNext())
 		{
-			Variable v = (Variable) i.next();
-			stringrep += " " +  v.toString();
+			//Variable v = (Variable) i.next();
+			stringrep += " " + i.next().toString();
 		}
 		return stringrep;
-    }
+	}
+	
+	public abstract Object clone();
 
 	public String toStringTyped()
-    {
+	{
 		String stringrep = name.toString();
-		Iterator i = params.iterator();
+		Iterator<Parameter> i = params.iterator();
 		while (i.hasNext())
 		{
 			Variable v = (Variable) i.next();
-			stringrep += " " +  v.toStringTyped();
+			stringrep += " " + v.toStringTyped();
 		}
 		return stringrep;
-    }
+	}
 
 	public abstract boolean effects(PredicateSymbol ps);
-	protected abstract Action ground(Map varMap);
-	public abstract Set getStaticConditionPredicates();
-	
-	public Action ground(List values)
+
+	protected abstract Action ground(Map<Variable, PDDLObject> varMap);
+
+	public abstract Set<Fact> getStaticConditionPredicates();
+
+	public Action ground(List<PDDLObject> values)
 	{
-		Map varMap = new Hashtable();
-		Iterator vit = values.iterator();
-		Iterator pit = params.iterator();
+		Map<Variable, PDDLObject> varMap = new Hashtable<Variable, PDDLObject>();
+		Iterator<PDDLObject> vit = values.iterator();
+		Iterator<Parameter> pit = params.iterator();
 		while (pit.hasNext())
 		{
 			Variable v = (Variable) pit.next();
 			PDDLObject o = (PDDLObject) vit.next();
-			varMap.put(v,o);
+			varMap.put(v, o);
 		}
+		
 		Action a = this.ground(varMap);
 		return a;
-		
-		
+
 	}
 
-	public Set ground(UngroundProblem up)
+	public Set<Action> ground(UngroundProblem up)
 	{
-		Set s = getParameterCombinations(up);
-		Set rSet = new HashSet();
-		Iterator sit = s.iterator();
-		while (sit.hasNext())
+		Set<ArrayList<PDDLObject>> s = this.getParameterCombinations(up);
+		Set<Action> rSet = new HashSet<Action>();
+		out : for (ArrayList<PDDLObject> l : s)
 		{
-			List l = (List) sit.next();
-			rSet.add(ground(l));
+			//This is a hack to stop actions which have no associated parameters being created -- as this causes 
+			//a NullPointerException to be thrown during grounding. The alternative to this is to construct a pfile
+			//which has one of every object type.
+			//TODO Do this in getParameterCombinations()
+			for (PDDLObject p : l)
+			{
+				//if p is null then the pfile has no parameter with which to ground out an action, so ignore it. This can massively reduce the action set for planning!
+				if (p == null)
+					continue out;
+			}
+			
+			
+			
+			Action groundedAction = ground(l); //ground an individual action using the specified grounded parameters
+		
+			//23/8/11 -- Eliminate any grounded actions whose preconditions contain
+			//			 a static fact which is not true in the initial state, rendering it impossible
+			//18/5/14 -- Also remove any simple preconditions which always evaluate to True. This has been 
+			//			 caused by the realisation that all Equals which do not have the same set of parameters
+			//			 will always evaluate to false, making the whole action unusable, so it can be pruned.
+			//			//TODO move this code to the getParameterCombinations() method
+			for (Fact pc : groundedAction.getPreconditions())
+			{
+				//It is possible that an unground fact may return a TrueCondition as its grounded form
+				//(see ForAlls), so just ignore these. They are still valid, but the IF statement below
+				//this will say that the action is invalid, as the probability of a TrueCondition appearing
+				//in the initial state is low.
+//				if (pc instanceof TrueCondition)
+				if (TrueCondition.isSimpleTrue(pc) == 1)
+				{
+					continue;
+				}
+				if (this.isSimpleFalse(pc) == -1)
+					continue out;
+
+				if (pc.isStatic() && up.initial.contains(pc) == false)
+					continue out;
+			}
+			
+			rSet.add(groundedAction); 
 		}
 		return rSet;
 	}
 
-	public Set getParameterCombinations(UngroundProblem up)
+	/**
+	 * 
+	 * @param f
+	 * @return -1 for always false, +1 for never false, and 0 for normal fact type
+	 */
+	protected int isSimpleFalse(Fact f)
+	{
+		if (f instanceof TrueCondition)
+			return 1;
+		
+		if (f instanceof Not)
+		{
+			return -1 * isSimpleFalse(((Not)f).getLiteral());
+		}
+		else
+			return 0;
+	}
+	
+	
+	
+
+	public Set<ArrayList<PDDLObject>> getParameterCombinations(UngroundProblem up)
 	{
 		int arraysize = params.size();
 
-		Set staticConditions = getStaticConditionPredicates();
+		Set<Fact> staticConditions = getStaticConditionPredicates();
 
-		boolean[] set = new boolean[arraysize]; // which of the parameters has been fully set
+		boolean[] set = new boolean[arraysize]; // which of the parameters has
+												// been fully set
 		Arrays.fill(set, false);
 
-		List combination = new ArrayList(arraysize);
+		ArrayList<PDDLObject> combination = new ArrayList<PDDLObject>(arraysize);
 		for (int i = 0; i < arraysize; ++i)
 		{
 			combination.add(null);
 		}
 
 		// Set for holding the combinations
-		Set combinations = new HashSet();
+		Set<ArrayList<PDDLObject>> combinations = new HashSet<ArrayList<PDDLObject>>();
 		combinations.add(combination);
 
-		// Loop through ones that must be static
-		Iterator scit = staticConditions.iterator();
-		while (scit.hasNext())
+		// Loop through any preconditions which are known to be static. We will use
+		// the ground parameters for these preconditions to partially ground out this
+		// action before other parameter combinations are considered.
+		for (Fact fp : staticConditions)
 		{
-			Predicate p = (Predicate) scit.next();
+			Predicate p = (Predicate) fp;
+			Set<ArrayList<PDDLObject>> newcombs = new HashSet<ArrayList<PDDLObject>>();
 
-			Set newcombs = new HashSet();
+			Set<Proposition> sp = up.staticPropositionMap.get(p
+					.getPredicateSymbol());
 
-			Set sp = (HashSet) up.staticPropositionMap.get(p.getPredicateSymbol());
-
-			// Loop through those in the initial state
-			Iterator spit = sp.iterator();
-			while (spit.hasNext())
+			// Loop through those in the initial tmstate
+			for (Proposition prop : sp)
 			{
-				Proposition prop = (Proposition) spit.next();
-				Iterator combit = combinations.iterator();
-				while (combit.hasNext())
+				for (ArrayList<PDDLObject> c : combinations)
 				{
-					ArrayList c = (ArrayList) combit.next();
 					// check its ok to put in
 					boolean ok = true;
-					Iterator propargit = prop.getParameters().iterator();
+					Iterator<Parameter> propargit = prop.getParameters().iterator();
 					int counter = 0;
 					while (propargit.hasNext() && ok)
 					{
 						PDDLObject arg = (PDDLObject) propargit.next();
-						Variable k = (Variable) p.getParameters().get(counter);
+						Parameter k = (Parameter) p.getParameters().get(counter);
 						int i = params.indexOf(k);
-						if (i >=0 && set[i])
+						if (i >= 0 && set[i])
 						{
-							if (!c.get(i).equals(arg)) ok = false;
+							if (!c.get(i).equals(arg))
+							{
+								ok = false;
+								break;
+							}
 						}
-						counter ++;
+						//this picks up a subtle bug whereby the static fact contains parameters
+						//which are valid in the context of the precondition in this action, but
+						//that their actual type is too abstract to be applied to the other
+						//predicates in the action. Disable this elseif and run IPC5 storage
+						//problem 2 to see how this affects the resulting plan (VAL says it is
+						//invalid due to the ground parameter being of an invalid type).
+						else if (i > 0 && arg.isOfType(k.getType()) == false)
+						{
+							ok = false;
+							break;
+						}
+						
+						counter++;
 					}
-					//if so, duplicate it and put it in and put it in newcombs
+					// if so, duplicate it and put it in and put it in newcombs
 					if (ok)
 					{
-						List sdup = (ArrayList) c.clone();
+						ArrayList<PDDLObject> sdup = (ArrayList<PDDLObject>) c.clone();
 						counter = 0;
 						propargit = prop.getParameters().iterator();
 						while (propargit.hasNext())
 						{
 							PDDLObject arg = (PDDLObject) propargit.next();
-							Variable k = (Variable) p.getParameters().get(counter);
+							Parameter k = (Parameter) p.getParameters().get(
+									counter);
 							int i = params.indexOf(k);
-                            if (i >=0 )
-                            {
-								sdup.set(i,arg);
+							if (i >= 0)
+							{
+								sdup.set(i, arg);
 								counter++;
-                            }
+							}
 						}
 						newcombs.add(sdup);
 					}
@@ -179,35 +258,30 @@ public abstract class Operator implements javaff.data.PDDLPrintable
 
 			combinations = newcombs;
 
-			Iterator pit = p.getParameters().iterator();
-			while (pit.hasNext())
+			for (Parameter s : p.getParameters())
 			{
-				Variable s = (Variable) pit.next();
 				int i = params.indexOf(s);
 
-				if (i>=0) set[i] = true;
+				if (i >= 0)
+					set[i] = true;
 			}
 		}
 
 		int counter = 0;
-		Iterator pit = params.iterator();
-		while (pit.hasNext())
+		//foreach parameter
+		for (Parameter p : params)
 		{
-			Variable p = (Variable) pit.next();
+			//if unset so far (not static?)
 			if (!set[counter])
 			{
-				Set newcombs = new HashSet();
-				Iterator cit = combinations.iterator();
-				while (cit.hasNext())
+				Set<ArrayList<PDDLObject>> newcombs = new HashSet<ArrayList<PDDLObject>>();
+				for (ArrayList<PDDLObject> s : combinations)
 				{
-					ArrayList s = (ArrayList) cit.next();
-					Set objs = (HashSet) up.typeSets.get(p.getType());
-					Iterator oit = objs.iterator();
-					while (oit.hasNext())
+					Set<PDDLObject> objs = (HashSet<PDDLObject>) up.typeSets.get(p.getType());
+					for (PDDLObject ob : objs)
 					{
-						PDDLObject ob = (PDDLObject) oit.next();
-						List sdup = (ArrayList) s.clone();
-						sdup.set(counter,ob);
+						ArrayList<PDDLObject> sdup = (ArrayList<PDDLObject>) s.clone();
+						sdup.set(counter, ob);
 						newcombs.add(sdup);
 					}
 				}
@@ -217,6 +291,6 @@ public abstract class Operator implements javaff.data.PDDLPrintable
 			++counter;
 		}
 		return combinations;
-		
+
 	}
 }

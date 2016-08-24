@@ -28,16 +28,17 @@
 
 package javaff.data.temporal;
 
-import javaff.data.Action;
-import javaff.data.GroundCondition;
-import javaff.data.GroundEffect;
-import javaff.data.strips.Proposition;
-import javaff.planning.State;
-import javaff.planning.MetricState;
-
-import java.util.Set;
-import java.util.Map;
 import java.math.BigDecimal;
+import java.util.Map;
+import java.util.Set;
+
+import javaff.data.Action;
+import javaff.data.Fact;
+import javaff.data.GroundFact;
+import javaff.data.strips.Not;
+import javaff.data.strips.Proposition;
+import javaff.planning.MetricState;
+import javaff.planning.State;
 
 public class DurativeAction extends Action
 {
@@ -45,12 +46,12 @@ public class DurativeAction extends Action
 
 	public DurationConstraint durationConstraint;
 
-    public GroundCondition startCondition;
-    public GroundCondition endCondition;
-    public GroundCondition invariant;
+	public GroundFact startCondition;
+	public GroundFact endCondition;
+	public GroundFact invariant;
 
-	public GroundEffect startEffect;
-    public GroundEffect endEffect;
+	public GroundFact startEffect;
+	public GroundFact endEffect;
 
 	public SplitInstantAction startAction;
 	public SplitInstantAction endAction;
@@ -62,12 +63,24 @@ public class DurativeAction extends Action
 	{
 		duration = new DurationFunction(this);
 	}
+	
+	@Override
+	public int hashCode()
+	{
+		return super.hashCode(); //TODO compute a real hash code for this
+	}
+	
+	@Override
+	public Object clone()
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 	public boolean staticDuration()
 	{
 		return durationConstraint.staticDuration();
 	}
-
 
 	public BigDecimal getDuration(MetricState ms)
 	{
@@ -84,33 +97,34 @@ public class DurativeAction extends Action
 		return durationConstraint.getMinDuration(ms);
 	}
 
-	//WARNING these methods may not work correctly. Only the instant actions should be worked with
+	// WARNING these methods may not work correctly. Only the instant actions
+	// should be worked with
 	public boolean isApplicable(State s)
 	{
 		return startAction.isApplicable(s);
 	}
-	
+
 	public void apply(State s)
 	{
 		startAction.apply(s);
 		endAction.apply(s);
 	}
-	
-	public Set getConditionalPropositions()
+
+	public Set getPreconditions()
 	{
-		Set rSet = startAction.getConditionalPropositions();
-		rSet.addAll(endAction.getConditionalPropositions());
+		Set rSet = startAction.getPreconditions();
+		rSet.addAll(endAction.getPreconditions());
 		return rSet;
 	}
 
-	public Set getAddPropositions()
+	public Set<Fact> getAddPropositions()
 	{
 		Set rSet = startAction.getAddPropositions();
 		rSet.addAll(endAction.getAddPropositions());
 		return rSet;
 	}
-	
-	public Set getDeletePropositions()
+
+	public Set<Not> getDeletePropositions()
 	{
 		Set rSet = startAction.getDeletePropositions();
 		rSet.addAll(endAction.getDeletePropositions());
@@ -130,19 +144,17 @@ public class DurativeAction extends Action
 		rSet.addAll(endAction.getOperators());
 		return rSet;
 	}
-	
+
 	public void staticify(Map fValues)
 	{
-		startCondition = startCondition.staticifyCondition(fValues);
-		startEffect = startEffect.staticifyEffect(fValues);
-		invariant = invariant.staticifyCondition(fValues);
-		endCondition = endCondition.staticifyCondition(fValues);
-		endEffect = endEffect.staticifyEffect(fValues);
+		startCondition = startCondition.staticify();
+		startEffect = startEffect.staticify();
+		invariant = invariant.staticify();
+		endCondition = endCondition.staticify();
+		endEffect = endEffect.staticify();
 
 		startAction.staticify(fValues);
 		endAction.staticify(fValues);
 	}
-
-
 
 }

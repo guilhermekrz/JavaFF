@@ -40,15 +40,24 @@ public class StartInstantAction extends SplitInstantAction
 	}
 
 	public void applySplit(TemporalMetricState ts)
-    {
-		ts.invariants.addAll(parent.invariant.getConditionalPropositions());
+	{
+		ts.invariants.addAll(parent.invariant.getFacts());
 		ts.openActions.add(parent);
-		ts.actions.remove(this);
-		ts.actions.add(getSibling());
+		ts.getActions().remove(this);
+		ts.getActions().add(getSibling());
 	}
 
 	public boolean exclusivelyInvariant(Proposition p)
-    {
-		return !parent.startCondition.getConditionalPropositions().contains(p) || !parent.startEffect.getAddPropositions().contains(p) || !parent.startEffect.getDeletePropositions().contains(p);
-    }
+	{
+		return !parent.startCondition.getFacts().contains(p)
+				|| !parent.startEffect.getFacts().contains(p)
+				|| !parent.startEffect.getFacts().contains(p);
+	}
+	
+	@Override
+	public Object clone()
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

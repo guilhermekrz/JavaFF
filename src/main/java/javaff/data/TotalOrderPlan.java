@@ -28,7 +28,6 @@
 
 package javaff.data;
 
-import java.util.Set;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ArrayList;
@@ -36,78 +35,162 @@ import java.util.Iterator;
 import java.util.ListIterator;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.math.BigDecimal;
 
-public class TotalOrderPlan implements Plan, Cloneable
+/**
+ * Represents a totally-ordered plan, containing discrete actions.
+ * @author David Pattison
+ *
+ */
+public class TotalOrderPlan implements Plan, Cloneable, Iterable<Action>
 {
-	private List plan = new ArrayList();
-
-	public Object clone()
+	private List<Action> plan;
+	private Fact goal;
+	
+	public TotalOrderPlan(Fact goal)
 	{
-		TotalOrderPlan rTOP = new TotalOrderPlan();
-		rTOP.plan = (List) ((ArrayList) plan).clone();
-		return rTOP;
+		this.goal = goal;
+		this.plan = new ArrayList<Action>();
+	}
+	
+	@Override
+	public Iterator<Action> iterator()
+	{
+		return this.getPlan().iterator();
+	}
+	
+	@Override
+	public Fact getGoal()
+	{
+		return this.goal;
+	}
+	
+	@Override
+	public void setGoal(Fact g)
+	{
+		this.goal = g;
 	}
 
-	public void addAction(Action a)
+	public Plan clone()
 	{
-		plan.add(a);
+		Fact gClone = null;
+		if (this.getGoal() != null)
+		{
+			gClone = (Fact) this.getGoal().clone();
+		}
+		
+		TotalOrderPlan rTOP = new TotalOrderPlan(gClone);
+		for (Action a : this.getPlan())
+		{
+			rTOP.getPlan().add((Action) a.clone());
+		}
+		
+		return rTOP;
+	}
+	
+	/**
+	 * Returns the sum of all action-costs in this plan.
+	 */
+	@Override
+	public BigDecimal getCost()
+	{
+		BigDecimal cost = new BigDecimal(0);
+		for (Action a : this)
+		{
+			cost = cost.add(a.getCost());
+		}
+		
+		return cost;
+	}
+
+	public boolean addAction(Action a)
+	{
+		return getPlan().add(a);
 	}
 
 	public int getPlanLength()
 	{
-		return plan.size();
-	}
-
-	public Iterator iterator()
-	{
-		return plan.iterator();
-	}
-
-	public ListIterator listIteratorEnd()
-	{
-		return plan.listIterator(plan.size());
-	}
-
-	public ListIterator listIterator(Action a)
-	{
-		return plan.listIterator(plan.indexOf(a));
-	}
-
-	public Set getActions()
-	{
-		return new HashSet(plan);
+		return getPlan().size();
 	}
 	
+	public int getActionCount()
+	{
+		return this.getPlan().size();
+	}
+
+	public ListIterator<Action> listIteratorEnd()
+	{
+		return getPlan().listIterator(getPlan().size());
+	}
+
+	public ListIterator<Action> listIterator(Action a)
+	{
+		return getPlan().listIterator(getPlan().indexOf(a));
+	}
+
+	@Override
+	public List<Action> getActions()
+	{
+		return getPlan();
+	}
+	
+//	public List<Action> getActions()
+//	{
+//		return plan;
+//	}
+	
+	public void clear()
+	{
+		this.getPlan().clear();
+	}
+
 	public boolean equals(Object obj)
-    {
-        if (obj instanceof TotalOrderPlan)
+	{
+		if (obj instanceof TotalOrderPlan)
 		{
 			TotalOrderPlan p = (TotalOrderPlan) obj;
-			return (plan.equals(p.plan));
-		}
-		else return false;
-    }
+			return (getPlan().equals(p.getPlan()));
+		} else
+			return false;
+	}
 
-    public int hashCode()
-    {
-        return plan.hashCode();
-    }
+	public int hashCode()
+	{
+		return getPlan().hashCode() ^ goal.hashCode() ^ 31;
+	}
 
 	public void print(PrintStream ps)
 	{
-		Iterator pit = plan.iterator();
+		Iterator pit = getPlan().iterator();
 		while (pit.hasNext())
 		{
-			ps.println("("+pit.next()+")");
+			ps.println("(" + pit.next() + ")");
 		}
 	}
 
 	public void print(PrintWriter pw)
 	{
-		Iterator pit = plan.iterator();
+		Iterator pit = getPlan().iterator();
 		while (pit.hasNext())
 		{
-			pw.println("("+pit.next()+")");
+			pw.println("(" + pit.next() + ")");
 		}
+	}
+	
+	@Override
+	public String toString() 
+	{
+		return getPlan().toString();
+	}
+
+	//TODO make read only?
+	protected List<Action> getPlan()
+	{
+		return plan;
+	}
+
+	protected void setPlan(List<Action> plan)
+	{
+		this.plan = plan;
 	}
 }

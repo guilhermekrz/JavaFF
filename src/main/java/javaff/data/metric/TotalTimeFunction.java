@@ -31,15 +31,31 @@ package javaff.data.metric;
 public class TotalTimeFunction extends NamedFunction
 {
 	private static TotalTimeFunction t;
+	private int hash;
 
 	private TotalTimeFunction()
-    {
+	{
 		super(new FunctionSymbol("total-time"));
-    }
+	}
 
 	public static TotalTimeFunction getInstance()
 	{
-		if (t == null) t = new TotalTimeFunction();
+		if (t == null)
+			t = new TotalTimeFunction();
 		return t;
+	}
+	
+	@Override
+	protected int updateHash()
+	{
+		this.hash = super.updateHash() ^ t.hashCode();
+		return this.hash;
+		
+	}
+	
+	@Override
+	public int hashCode()
+	{
+		return this.hash;
 	}
 }

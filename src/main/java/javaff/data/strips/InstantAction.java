@@ -28,58 +28,238 @@
 
 package javaff.data.strips;
 
-import javaff.data.GroundCondition;
-import javaff.data.GroundEffect;
-import javaff.data.Action;
-import javaff.planning.State;
-import java.util.Set;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
+import javaff.data.Action;
+import javaff.data.Fact;
+import javaff.data.GroundFact;
+import javaff.data.metric.NamedFunction;
+import javaff.planning.State;
+
+//TODO this class could be massively sped up by caching the hash. The problem is that
+//it is so embedded in JavaFF that ironing out any bugs caused by changing the values of 
+//fields and not then calling updatehash() would be a massive task.
 public abstract class InstantAction extends Action
 {
-    public GroundCondition condition;
-	public GroundEffect effect;
+	//private because we want to go through setupAddDeletes() every time the effect is modified
+	private GroundFact condition;
+	private GroundFact effect;
+	
+	private HashSet<Fact> addEffects;
+	private HashSet<Not> deleteEffects; //local lookup of adds and deletes
+	
+	private int hash;
 
+	public InstantAction()
+	{
+		super();
+		this.condition = TrueCondition.getInstance();
+		this.effect = TrueCondition.getInstance();
+		this.addEffects = new HashSet<Fact>();
+		this.deleteEffects = new HashSet<Not>();
+		
+		this.updateHash();
+	}
+	
+	public InstantAction(String name)
+	{
+		super(name);
+		this.condition = TrueCondition.getInstance();
+		this.effect = TrueCondition.getInstance();
+		this.addEffects = new HashSet<Fact>();
+		this.deleteEffects = new HashSet<Not>();
+		
+		this.updateHash();
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		boolean supeq = super.equals(obj);
+		if (!supeq)
+			return false;
+		
+		InstantAction other = (InstantAction) obj;
+		if (this.getCondition().equals(other.getCondition()) == false || this.getEffect().equals(other.getEffect()) == false)
+			return false;
+		
+		return true;
+	}
+	
+	protected int updateHash()
+	{
+		this.hash = 31 ^ this.getAddPropositions().hashCode() ^ this.getDeletePropositions().hashCode() ^ this.getCondition().hashCode() ^ 
+				this.getCost().hashCode();
+		return this.hash;
+	}
+	
+	@Override
+	public int hashCode()
+	{
+		return this.hash;
+	}
+	
 	public boolean isApplicable(State s)
 	{
-		return condition.isTrue(s) && s.checkAvailability(this);
+		return this.getCondition().isTrue(s) && s.checkAvailability(this);
 	}
 
 	public void apply(State s)
 	{
-		effect.applyDels(s);
-		effect.applyAdds(s);
+		getEffect().applyDels(s);
+		getEffect().applyAdds(s);
+		
+//		this.setupAddDeletes();
+	}
+	
+	/**
+	 * Add a positive effect.
+	 * @param add
+	 */
+	public void addAddProposition(Fact add)
+	{
+		this.addEffectFact(add);
+	}
+	
+	/**
+	 * Add a negative effect.
+	 * @param del
+	 */
+	public void addDeleteProposition(Fact del)
+	{
+		this.addEffectFact(del);
 	}
 
-	public Set getConditionalPropositions()
+	
+	/**
+	 * Adds the specified effects. If a fact is of type {@link Not} then it is added to the 
+	 * list of negative effects. If it is a positive effect, it is added to the list of
+	 * positive effects. 
+	 * @param f
+	 */
+	protected void addEffectFacts(Set<Fact> facts)
 	{
-		return condition.getConditionalPropositions();
+		for (Fact f : facts)
+			this.addEffectFact(f);
+		
+		this.updateHash();
+	}
+	
+	protected void setEffectFacts(Set<Fact> facts)
+	{
+		this.clearAddEffects();
+		this.clearDeleteEffects();
+		
+		this.addEffectFacts(facts);
+		this.updateHash();
+	}
+	
+	protected void clearAddEffects()
+	{
+		this.addEffects.clear();
+		this.updateHash();
+	}
+	
+	protected void clearDeleteEffects()
+	{
+		this.deleteEffects.clear();
+		this.updateHash();
+	}
+	
+	
+	/**
+	 * Adds the specified effect. If this is of type {@link Not} then it is added to the 
+	 * list of negative effects. If it is a positive effect, it is added to the list of
+	 * positive effects. 
+	 * @param f
+	 */
+	protected boolean addEffectFact(Fact f)
+	{
+		boolean res;
+		if (f instanceof Not)
+		{
+			res = this.deleteEffects.add((Not) f);
+		}
+		else
+		{
+			res = this.addEffects.add(f);
+		}
+		this.updateHash();
+		
+		return res;
+	}
+	
+	/**
+	 * Returns an unmodifiable set of the preconditions associated with this action.
+	 */
+	public Set<Fact> getPreconditions()
+	{
+		return Collections.unmodifiableSet(this.getCondition().getFacts());
 	}
 
-	public Set getAddPropositions()
+	/**
+	 * Returns an unmodifiable set of the add effects associated with this action.
+	 */
+	@Override
+	public Set<Fact> getAddPropositions()
 	{
-		return effect.getAddPropositions();
+//		return effect.getFacts();
+		return Collections.unmodifiableSet(this.addEffects);
 	}
 
-	public Set getDeletePropositions()
+	/**
+	 * Returns an unmodifiable set of the delete effects associated with this action.
+	 */
+	@Override
+	public Set<Not> getDeletePropositions()
 	{
-		return effect.getDeletePropositions();
+//		return effect.getFacts();
+		return Collections.unmodifiableSet(this.deleteEffects);
 	}
 
-	public Set getComparators()
+	/**
+	 * Returns an unmodifiable set of the comparators associated with this action.
+	 */
+	public Set<NamedFunction> getComparators()
 	{
-		return condition.getComparators();
+		return Collections.unmodifiableSet(getCondition().getComparators());
 	}
 
 	public Set getOperators()
 	{
-		return effect.getOperators();
+		Set addset = getEffect().getOperators();
+		addset.addAll(getEffect().getOperators());
+		return addset;
 	}
 
 	public void staticify(Map fValues)
 	{
-		condition = condition.staticifyCondition(fValues);
-		effect = effect.staticifyEffect(fValues);
+		setCondition(getCondition().staticify());
+		setEffect(getEffect().staticify());
+	}
+
+	public void setCondition(GroundFact condition)
+	{
+		this.condition = condition;
+	}
+
+	public GroundFact getCondition()
+	{
+		return condition;
+	}
+
+	public void setEffect(GroundFact effect)
+	{
+		this.effect = effect;
+		this.setEffectFacts(this.effect.getFacts());
+	}
+
+	protected GroundFact getEffect()
+	{
+		return effect;
 	}
 
 }

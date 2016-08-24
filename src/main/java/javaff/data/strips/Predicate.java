@@ -28,82 +28,118 @@
 
 package javaff.data.strips;
 
+import javaff.data.Fact;
 import javaff.data.Literal;
-import javaff.data.UngroundCondition;
-import javaff.data.UngroundEffect;
-import javaff.data.GroundCondition;
-import javaff.data.GroundEffect;
+import javaff.data.Parameter;
+import javaff.data.UngroundFact;
+
+import javaff.data.GroundFact;
+
+
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Iterator;
 
-public class Predicate extends Literal implements UngroundCondition, UngroundEffect
+public class Predicate extends Literal implements UngroundFact, SingleLiteral
 {
+	private int hash;
+	
 	public Predicate(PredicateSymbol p)
-    {
+	{
 		name = p;
+		
+		this.updateHash();
+	}
+	
+	public Object clone()
+	{
+		PredicateSymbol sym = new PredicateSymbol();
+		sym.name = new String(this.name.name);
+		sym.params = new ArrayList(this.name.params);
+		sym.staticValue = this.name.staticValue;
+		
+		Predicate p = new Predicate(sym);
+		
+		return p;
+	}
+	
+	@Override
+	public Set<? extends Fact> getFacts()
+	{
+		Set<Fact> s = new HashSet<Fact>(1);
+		s.add(this);
+		return s;
 	}
 
 	public boolean effects(PredicateSymbol ps)
-    {
+	{
 		return name.equals(ps);
 	}
 
-	public UngroundCondition minus(UngroundEffect effect)
-    {
+	public UngroundFact minus(UngroundFact effect)
+	{
 		return effect.effectsAdd(this);
-    }
+	}
 
-	public UngroundCondition effectsAdd(UngroundCondition cond)
-    {
-		if (this.equals(cond)) return TrueCondition.getInstance();
-		else return cond;
-    }
+	public UngroundFact effectsAdd(UngroundFact cond)
+	{
+		if (this.equals(cond))
+			return TrueCondition.getInstance();
+		else
+			return cond;
+	}
 
 	public Set getStaticPredicates()
-    {
+	{
 		Set rSet = new HashSet();
-		if (name.isStatic()) rSet.add(this);
+		if (name.isStatic())
+			rSet.add(this);
 		return rSet;
-    }
+	}
 
-	public Proposition ground(Map varMap)
-    {
+	public Proposition ground(Map<Variable, PDDLObject> varMap)
+	{
 		Proposition p = new Proposition(name);
-		Iterator pit = parameters.iterator();
-		while (pit.hasNext())
+		for (Parameter o : this.parameters)
 		{
-                        Object o = pit.next();
-                        PDDLObject po;
-                        if (o instanceof PDDLObject) po = (PDDLObject) o;
-                        else 
-                        {
-                           Variable v = (Variable) o;                          
-                           po = (PDDLObject) varMap.get(v);
-                        }
-                        
+			PDDLObject po;
+			if (o instanceof PDDLObject)
+				po = (PDDLObject) o;
+			else
+			{
+				Variable v = (Variable) o;
+				po = (PDDLObject) varMap.get(v);
+			}
+
 			p.addParameter(po);
 		}
 		return p;
-    }
-
-	public GroundCondition groundCondition(Map varMap)
-    {
-		return ground(varMap);
-    }
-
-	public GroundEffect groundEffect(Map varMap)
-    {
-		return ground(varMap);
 	}
 
+//	public GroundFact ground(Map<Variable, PDDLObject> varMap)
+//	{
+//		return ground(varMap);
+//	}
+
+//	public GroundFact groundEffect(Map<Variable, PDDLObject> varMap)
+//	{
+//		return ground(varMap);
+//	}
+	
+	
+	@Override
 	public int hashCode()
-    {
-		int hash = 5;
-		hash = 31 * hash ^ name.hashCode();
-		hash = 31 * hash ^ parameters.hashCode();
-		return hash;
+	{
+		return this.hash;
 	}
 
+	protected int updateHash()
+	{
+		this.hash = 5 ^ super.hashCode();
+		return this.hash;
+	}
+
+	
 }

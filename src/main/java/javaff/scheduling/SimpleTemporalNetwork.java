@@ -35,7 +35,10 @@ import java.util.Set;
 public interface SimpleTemporalNetwork
 {
 	public void addConstraints(Set constraints);
+
 	public void addConstraint(TemporalConstraint c);
+
 	public boolean consistentSource(InstantAction s);
+
 	public boolean consistent();
 }

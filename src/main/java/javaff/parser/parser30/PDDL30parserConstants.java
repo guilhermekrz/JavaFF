@@ -29,107 +29,111 @@ public interface PDDL30parserConstants {
   /** RegularExpression Id. */
   int METRIC = 13;
   /** RegularExpression Id. */
-  int CONSTRAINTS = 14;
+  int PROBLEM = 14;
   /** RegularExpression Id. */
-  int PREFERENCE = 15;
+  int REQUIREMENTS = 15;
   /** RegularExpression Id. */
-  int PROBLEM = 16;
+  int CONSTRAINTS = 16;
   /** RegularExpression Id. */
-  int REQUIREMENTS = 17;
+  int PREFERENCE = 17;
   /** RegularExpression Id. */
   int REQUIREMENT_LABELS = 18;
   /** RegularExpression Id. */
   int NON_HANDLED_LABELS = 19;
   /** RegularExpression Id. */
-  int TYPES = 20;
+  int PDDL_1_7_LABELS = 20;
   /** RegularExpression Id. */
-  int EITHER = 21;
+  int TYPES = 21;
   /** RegularExpression Id. */
-  int CONSTANTS = 22;
+  int EITHER = 22;
   /** RegularExpression Id. */
-  int PREDICATES = 23;
+  int CONSTANTS = 23;
   /** RegularExpression Id. */
-  int FUNCTIONS = 24;
+  int PREDICATES = 24;
   /** RegularExpression Id. */
-  int ACTION = 25;
+  int FUNCTIONS = 25;
   /** RegularExpression Id. */
-  int DURATIVE_ACTION = 26;
+  int ACTION = 26;
   /** RegularExpression Id. */
-  int PARAMETERS = 27;
+  int DURATIVE_ACTION = 27;
   /** RegularExpression Id. */
-  int DURATION = 28;
+  int PARAMETERS = 28;
   /** RegularExpression Id. */
-  int DUR_VAR = 29;
+  int DURATION = 29;
   /** RegularExpression Id. */
-  int PRECONDITION = 30;
+  int DUR_VAR = 30;
   /** RegularExpression Id. */
-  int CONDITION = 31;
+  int PRECONDITION = 31;
   /** RegularExpression Id. */
-  int EFFECT = 32;
+  int CONDITION = 32;
   /** RegularExpression Id. */
-  int AND = 33;
+  int EFFECT = 33;
   /** RegularExpression Id. */
-  int NOT = 34;
+  int AT = 34;
   /** RegularExpression Id. */
-  int OVER_ALL = 35;
+  int AT_TIL = 35;
   /** RegularExpression Id. */
-  int AT_START = 36;
+  int AND = 36;
   /** RegularExpression Id. */
-  int AT_END = 37;
+  int OR = 37;
   /** RegularExpression Id. */
-  int EQUALS = 38;
+  int NOT = 38;
   /** RegularExpression Id. */
-  int TYPE_IDENT = 39;
+  int IMPLY = 39;
   /** RegularExpression Id. */
-  int BINARY_OP = 40;
+  int OVER_ALL = 40;
   /** RegularExpression Id. */
-  int BINARY_COMP = 41;
+  int AT_START = 41;
   /** RegularExpression Id. */
-  int ASSIGN_OP = 42;
+  int AT_END = 42;
   /** RegularExpression Id. */
-  int ASSIGN = 43;
+  int FOR_ALL = 43;
   /** RegularExpression Id. */
-  int SCALE_UP = 44;
+  int EXISTS = 44;
   /** RegularExpression Id. */
-  int SCALE_DOWN = 45;
+  int WHEN = 45;
   /** RegularExpression Id. */
-  int INCREASE = 46;
+  int EQUALS = 46;
   /** RegularExpression Id. */
-  int DECREASE = 47;
+  int TYPE_IDENT = 47;
   /** RegularExpression Id. */
-  int OPTIMIZATION = 48;
+  int BINARY_OP = 48;
   /** RegularExpression Id. */
-  int MINIMIZE = 49;
+  int BINARY_COMP = 49;
   /** RegularExpression Id. */
-  int MAXIMIZE = 50;
+  int ASSIGN_OP = 50;
   /** RegularExpression Id. */
-  int TOTAL_TIME = 51;
+  int OPTIMIZATION = 51;
   /** RegularExpression Id. */
-  int VAR = 52;
+  int TOTAL_TIME = 52;
   /** RegularExpression Id. */
-  int ALWAYS = 53;
+  int NUMBER_TYPE = 53;
   /** RegularExpression Id. */
-  int SOMETIME = 54;
+  int VAR = 54;
   /** RegularExpression Id. */
-  int WITHIN = 55;
+  int ALWAYS = 55;
   /** RegularExpression Id. */
-  int AT_MOST_ONCE = 56;
+  int SOMETIME = 56;
   /** RegularExpression Id. */
-  int SOMETIME_AFTER = 57;
+  int WITHIN = 57;
   /** RegularExpression Id. */
-  int SOMETIME_BEFORE = 58;
+  int AT_MOST_ONCE = 58;
   /** RegularExpression Id. */
-  int ALWAYS_WITHIN = 59;
+  int SOMETIME_AFTER = 59;
   /** RegularExpression Id. */
-  int HOLD_DURING = 60;
+  int SOMETIME_BEFORE = 60;
   /** RegularExpression Id. */
-  int HOLD_AFTER = 61;
+  int ALWAYS_WITHIN = 61;
   /** RegularExpression Id. */
-  int NUMBER = 62;
+  int HOLD_DURING = 62;
   /** RegularExpression Id. */
-  int NAME = 63;
+  int HOLD_AFTER = 63;
   /** RegularExpression Id. */
-  int SINGLE_LINE_COMMENT = 64;
+  int NUMBER = 64;
+  /** RegularExpression Id. */
+  int NAME = 65;
+  /** RegularExpression Id. */
+  int SINGLE_LINE_COMMENT = 66;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -150,12 +154,13 @@ public interface PDDL30parserConstants {
     "\":goal\"",
     "\":init\"",
     "\":metric\"",
-    "\":constraints\"",
-    "\"preference\"",
     "\"problem\"",
     "\":requirements\"",
+    "\":constraints\"",
+    "\"preference\"",
     "<REQUIREMENT_LABELS>",
     "<NON_HANDLED_LABELS>",
+    "<PDDL_1_7_LABELS>",
     "\":types\"",
     "\"either\"",
     "\":constants\"",
@@ -169,25 +174,26 @@ public interface PDDL30parserConstants {
     "\":precondition\"",
     "\":condition\"",
     "\":effect\"",
+    "\": at\"",
+    "\"at <NUMBER>\"",
     "\"and\"",
+    "\"or\"",
     "\"not\"",
+    "\"imply\"",
     "\"over all\"",
     "\"at start\"",
     "\"at end\"",
+    "\"forall\"",
+    "\"exists\"",
+    "\"when\"",
     "\"=\"",
     "\"-\"",
     "<BINARY_OP>",
     "<BINARY_COMP>",
     "<ASSIGN_OP>",
-    "\"assign\"",
-    "\"scale-up\"",
-    "\"scale-down\"",
-    "\"increase\"",
-    "\"decrease\"",
     "<OPTIMIZATION>",
-    "\"minimize\"",
-    "\"maximize\"",
     "\"total-time\"",
+    "\"number\"",
     "<VAR>",
     "\"always\"",
     "\"sometime\"",

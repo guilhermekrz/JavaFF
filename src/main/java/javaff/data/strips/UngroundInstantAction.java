@@ -28,47 +28,55 @@
 
 package javaff.data.strips;
 
-import javaff.data.Action;
-import javaff.data.UngroundCondition;
-import javaff.data.UngroundEffect;
-import javaff.data.PDDLPrinter;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.HashSet;
+
+import javaff.data.Action;
+import javaff.data.Fact;
+import javaff.data.PDDLPrinter;
+import javaff.data.UngroundFact;
 
 public class UngroundInstantAction extends Operator
 {
-    public UngroundCondition condition;
-    public UngroundEffect effect;
+	public UngroundFact condition;
+	public UngroundFact effect;
+	
+	public UngroundInstantAction()
+	{
+		this.condition = TrueCondition.getInstance();
+		this.effect = TrueCondition.getInstance();
+	}
 
 	public boolean effects(PredicateSymbol ps)
 	{
 		return effect.effects(ps);
 	}
 
-	public Action ground(Map varMap)
+	public Action ground(Map<Variable, PDDLObject> varMap)
 	{
 		return ground(varMap, new STRIPSInstantAction());
 	}
 
-	public Action ground(Map varMap, InstantAction a)
+	public Action ground(Map<Variable, PDDLObject> varMap, InstantAction a)
 	{
-		a.name = this.name;
+		a.setName(this.name);
 
 		Iterator pit = params.iterator();
 		while (pit.hasNext())
 		{
 			Variable v = (Variable) pit.next();
 			PDDLObject o = (PDDLObject) varMap.get(v);
-			a.params.add(o);
+			a.getParameters().add(o);
 		}
-		a.condition = condition.groundCondition(varMap);
-		a.effect = effect.groundEffect(varMap);
+		
+		a.setCondition(condition.ground(varMap));
+		a.setEffect(effect.ground(varMap));
+		
 		return a;
 	}
 
-	public Set getStaticConditionPredicates()
+	public Set<Fact> getStaticConditionPredicates()
 	{
 		return condition.getStaticPredicates();
 	}
@@ -80,18 +88,29 @@ public class UngroundInstantAction extends Operator
 		p.print("(:action ");
 		p.print(name);
 		p.println();
-		PDDLPrinter.printIndent(p, indent+1);
+		PDDLPrinter.printIndent(p, indent + 1);
 		p.print(":parameters(\n");
-		PDDLPrinter.printToString(params, p, true, false, indent+2);
+		PDDLPrinter.printToString(params, p, true, false, indent + 2);
 		p.println(")");
-		PDDLPrinter.printIndent(p, indent+1);
+		PDDLPrinter.printIndent(p, indent + 1);
 		p.print(":precondition");
-		condition.PDDLPrint(p, indent+2);
+		condition.PDDLPrint(p, indent + 2);
 		p.println();
-		PDDLPrinter.printIndent(p, indent+1);
+		PDDLPrinter.printIndent(p, indent + 1);
 		p.print(":effect");
-		effect.PDDLPrint(p, indent+2);
+		effect.PDDLPrint(p, indent + 2);
 		p.print(")");
 	}
 
+	@Override
+	public Object clone()
+	{
+		UngroundInstantAction a = new UngroundInstantAction();
+		a.name = this.name;
+		a.params = this.params;
+		a.condition = this.condition;
+		a.effect = this.effect;
+		
+		return a;
+	}
 }

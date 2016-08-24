@@ -28,7 +28,25 @@
 
 package javaff.data;
 
-public interface CompoundLiteral extends PDDLPrintable
-{
+import java.util.Collection;
+import java.util.Set;
 
+/**
+ * Represents a PDDL literals which is comprised of other literals. That is, this object is
+ * just a wrapper for other facts. 
+ * @author dpattiso
+ *
+ */
+public interface CompoundLiteral extends PDDLPrintable, Fact, Cloneable
+{
+	public void add(Fact o);
+	
+	public void addAll(Collection<Fact> c);
+	
+	public boolean remove(Fact f);
+	
+	public boolean removeAll(Collection<Fact> c);
+	
+	public Set<Fact> getCompoundFacts();
 }
+

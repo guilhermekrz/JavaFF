@@ -31,7 +31,7 @@ package javaff.data.strips;
 import javaff.data.Type;
 
 public class SimpleType extends Type
-{	
+{
 	protected String name;
 	protected Type superType;
 
@@ -65,6 +65,16 @@ public class SimpleType extends Type
 	{
 		return name + " - " + superType;
 	}
+	
+	public Object clone()
+	{
+		String name = this.name;
+		Type superTypeClone = Type.rootType;
+		if (this.superType != null)
+			superTypeClone = (Type) this.superType.clone();
+		
+		return new SimpleType(name, superTypeClone);
+	}
 
 	public boolean equals(Object obj)
 	{
@@ -72,8 +82,8 @@ public class SimpleType extends Type
 		{
 			SimpleType ty = (SimpleType) obj;
 			return (name.equals(ty.name));
-		}
-		else return false;
+		} else
+			return false;
 	}
 
 	public int hashCode()
@@ -81,9 +91,12 @@ public class SimpleType extends Type
 		return 31 * 8 + name.hashCode();
 	}
 
-	public boolean isOfType(Type t) // is this of type t (i.e. is type further up the hierarchy)
+	public boolean isOfType(Type t) // is this of type t (i.e. is type further
+									// up the hierarchy)
 	{
-		if (this.equals(t)) return true;
-		else return superType.isOfType(t);
+		if (this.equals(t))
+			return true;
+		else
+			return superType.isOfType(t);
 	}
 }

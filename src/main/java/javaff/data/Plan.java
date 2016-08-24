@@ -28,13 +28,74 @@
 
 package javaff.data;
 
-import java.util.Set;
+import java.util.List;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.math.BigDecimal;
 
-public interface Plan extends Cloneable
+/**
+ * Represents a plan, which is a set of {@link Action}s. The underlying order is 
+ * left to the implementing class.
+ * @author David Pattison
+ *
+ */
+public interface Plan extends Cloneable, Iterable<Action>
 {
+	/**
+	 * Add the specified action to the plan.
+	 * @param a The action to add.
+	 * @return True if the addition was successful, false otherwise.
+	 */
+	public boolean addAction(Action a);
+	
+	public Plan clone();
+	
+	/**
+	 * Gets the cost of this plan.
+	 * @return
+	 */
+	public BigDecimal getCost();
+	
+	/**
+	 * Print this plan to the specified {@link PrintStream}
+	 * @param p
+	 */
 	public abstract void print(PrintStream p);
+
+	/**
+	 * Print this plan to the specified {@link PrintWriter}.
+	 * @param p
+	 */
 	public abstract void print(PrintWriter p);
-	public abstract Set getActions();
+
+	/**
+	 * Get the actions in this plan.
+	 * @return
+	 */
+	public abstract List<Action> getActions();
+	
+	/**
+	 * Get the number of discrete actions in this plan.
+	 * @return
+	 */
+	public abstract int getActionCount();
+
+	/**
+	 * Get the goal which this plan achieves.
+	 * @return
+	 */
+	public Fact getGoal();
+	
+	/**
+	 * Set the goal which this plan achieves.
+	 * @param g
+	 */
+	public void setGoal(Fact g);
+
+	/**
+	 * Get the length of the plan, which is implementation-dependent.
+	 * @return
+	 * @see #getActionCount() For the number of discrete actions in the plan.
+	 */
+	public int getPlanLength();
 }

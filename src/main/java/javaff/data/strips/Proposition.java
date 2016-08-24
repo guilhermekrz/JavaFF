@@ -28,41 +28,96 @@
 
 package javaff.data.strips;
 
+import javaff.data.Fact;
+import javaff.data.GroundFact;
 
-import javaff.data.GroundCondition;
-import javaff.data.GroundEffect;
+import javaff.data.Literal;
 import javaff.planning.State;
 import javaff.planning.STRIPSState;
+
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.HashSet;
-import java.util.Map;
 
-public class Proposition extends javaff.data.Literal implements GroundCondition, GroundEffect
+public class Proposition extends javaff.data.Literal implements GroundFact, SingleLiteral, STRIPSFact
 {
-	public Proposition(PredicateSymbol p)
-    {
-		name = p;
-    }
+	private int hash;
 	
-	public boolean isTrue(State s) // returns whether this conditions is true is State S
-    {
+	public Proposition(PredicateSymbol p)
+	{
+		super();
+		name = p;
+		
+		this.updateHash();
+	}
+	
+	protected Proposition()
+	{
+		super();
+		
+		name = new PredicateSymbol();
+		
+		this.updateHash();
+	}
+	
+	@Override
+	protected int updateHash()
+	{
+		this.hash = super.updateHash();
+		return hash;
+		
+//		this.hash = super.updateHash() ^ 31;
+//		
+//		if (this.name != null)
+//			System.out.println("Updated Proposition hash of \""+this.toString()+"\" to be "+hash);
+//		else
+//			System.out.println("Updated Proposition hash to be "+hash);
+//		
+//		return this.hash;
+	}
+	
+	@Override
+	public Set<Fact> getFacts()
+	{
+		Set<Fact> s = new HashSet<Fact>(1);
+		s.add(this);
+		return s;
+	}
+	
+	public Object clone()
+	{
+		Proposition p = new Proposition(this.name);
+		p.parameters = new ArrayList(this.parameters);
+		
+		p.updateHash();
+		
+		return p;
+	}
+
+	public boolean isTrue(State s) // returns whether this conditions is true
+									// is State S
+	{
 		STRIPSState ss = (STRIPSState) s;
-		return ss.isTrue(this);
+		boolean t = ss.isTrue(this);
+		return t;
 	}
 
 	public void apply(State s) // carry out the effects of this on State s
 	{
-		STRIPSState ss = (STRIPSState) s;
-		ss.addProposition(this);
+		applyDels(s);
+		applyAdds(s);
 	}
 
 	public void applyAdds(State s)
-    {
-		apply(s);
+	{
+		STRIPSState ss = (STRIPSState) s;
+		ss.addFact(this);
 	}
 
 	public void applyDels(State s)
-    {
+	{
+		STRIPSState ss = (STRIPSState) s;
+		ss.removeFact(new Not(this)); //TODO hack for removing negated version of propositions
 	}
 
 	public boolean isStatic()
@@ -70,52 +125,54 @@ public class Proposition extends javaff.data.Literal implements GroundCondition,
 		return name.isStatic();
 	}
 
-	public Set getDeletePropositions()
-    {
-		return new HashSet();
+	public GroundFact staticify()
+	{
+		if (isStatic())
+			return TrueCondition.getInstance();
+		else
+			return this;
 	}
 
-	public Set getAddPropositions()
-    {
-		Set rSet = new HashSet();
-		rSet.add(this);
-		return rSet;
+	public Set getOperators()
+	{
+		return super.EmptySet;
 	}
 
-	public GroundCondition staticifyCondition(Map fValues)
-    {
-		if (isStatic()) return TrueCondition.getInstance();
-    else return this;
-    }
-
-	public GroundEffect staticifyEffect(Map fValues)
-    {
-		return this;
+	public Set getComparators()
+	{
+		return super.EmptySet;
 	}
-
-
-	public Set getConditionalPropositions()
-    {
-		Set rSet = new HashSet();
-		rSet.add(this);
-		return rSet;
-	}
-
-  public Set getOperators()
-  {
-  	return new HashSet();
-  }
-
-  public Set getComparators()
-  {
-  	return new HashSet();
-  }
-
+	
+	@Override
 	public int hashCode()
-    {
-		int hash = 6;
-		hash = 31 * hash ^ name.hashCode();
-		hash = 31 * hash ^ parameters.hashCode();
-		return hash;
+	{
+		return this.hash;
+	}
+	
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (obj instanceof Proposition)
+		{
+			Proposition p = (Proposition) obj;
+			boolean eq = (name.equals(p.name) && parameters.equals(p.parameters));
+			return eq;
+			
+			/*18/03/14 Crazy hashCode() behaviour! If "return this.hashCode() == obj.hashCode()", the
+			  runtimes are crazy high when profiled. Change it to "boolean s = this.hashCode() == p.hashCode()"
+			  and it just breezes through it! Seems to be the casting to a Proposition which does this. If 
+			  just "obj.hashCode()" is used, the above behaviour is exhibited.
+			  java version "1.7.0_51"
+			  OpenJDK Runtime Environment (IcedTea 2.4.4) (7u51-2.4.4-0ubuntu0.12.10.2)
+			  OpenJDK 64-Bit Server VM (build 24.45-b08, mixed mode)
+			 */
+
+//			boolean h = this.hashCode() == p.hashCode();
+//			return h;
+//			assert(h == eq);
+//			return h && eq;
+		} 
+		else
+			return false;
 	}
 }

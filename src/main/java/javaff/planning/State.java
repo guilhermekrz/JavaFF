@@ -28,73 +28,92 @@
 
 package javaff.planning;
 
-import javaff.JavaFF;
 import javaff.data.Action;
-import javaff.data.GroundCondition;
+import javaff.data.GroundFact;
 import javaff.data.Plan;
+import javaff.data.TotalOrderPlan;
 
 import java.math.BigDecimal;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
 
 public abstract class State implements Cloneable
 {
-	public GroundCondition goal;
-
-//	public Filter filter = null;
-
-//	public void setFilter(Filter f)
-//	{
-//		filter = f;
-//	}
-
-//	public Filter getFilter()
-//	{
-//		return filter;
-//	}
-
-//	public abstract Set getNextStates();       // get all the next possible states reachable from this state
-
-	public Set getNextStates(Set actions)      // get all the states after applying this set of actions
+	public GroundFact goal;
+	public TotalOrderPlan plan;
+	
+	public State()
 	{
-		Set rSet = new HashSet();
-		Iterator ait = actions.iterator();
-		while (ait.hasNext())
+		plan = new TotalOrderPlan(this.goal);
+	}
+	
+	/**
+	 * Returns the cost of the plan which achieved this state, or -1 if there is no plan associated 
+	 * with this state.
+	 * @return
+	 */
+	public BigDecimal getCost()
+	{
+		if (this.plan == null)
+			return new BigDecimal(-1);
+					
+		return this.plan.getCost();
+	}
+	
+	public Plan getPlan()
+	{
+		return plan;
+	}
+	
+
+	public State getNextState(Action action) 
+	{
+		return this.apply(action);
+	}
+
+
+	public Set<State> getNextStates(Collection<Action> actions) // get all the states after applying
+											// this set of actions
+	{
+		Set<State> rSet = new LinkedHashSet<State>(); //retain ordering -- helpful actions may be first
+		for (Action a : actions)
 		{
-			Action a = (Action) ait.next();
-			rSet.add(this.apply(a));
+			rSet.add(this.getNextState(a));
 		}
 		return rSet;
 	}
 
-	public State apply(Action a)    // return a cloned copy
-	{
-		State s = null;
-		try {
-			s = (State) this.clone();
-		}
-		catch (CloneNotSupportedException e){
-			JavaFF.errorOutput.println(e);
-		}
-		a.apply(s);
-		return s;
-	}
+	public abstract State apply(Action a);
 
 	public abstract BigDecimal getHValue();
+
 	public abstract BigDecimal getGValue();
 
 	public boolean goalReached()
 	{
 		return goal.isTrue(this);
 	}
+	
+	public GroundFact getGoal() {
+		return goal;
+	}
+	
+	public void setGoal(GroundFact goal) {
+		this.goal = goal;
+	}
 
 	public abstract Plan getSolution();
 
-	public abstract Set getActions();
+	public abstract Set<Action> getActions();
 
-	public boolean checkAvailability(Action a) //put in for invariant checking
+	public boolean checkAvailability(Action a) // put in for invariant checking
 	{
 		return true;
 	}
+	
+	public abstract Object clone();
 }

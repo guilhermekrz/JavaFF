@@ -28,9 +28,12 @@
 
 package javaff.planning;
 
-import java.util.Set;
+import java.util.List;
+
+import javaff.data.Action;
 
 public interface Filter
 {
-	public Set getActions(State S); // simple method: takes a state S, returns a Set of states in its neighbourhood
-} 
+	public List<Action> getActions(State S); // simple method: takes a tmstate S, returns a
+									// Set of states in its neighbourhood
+}

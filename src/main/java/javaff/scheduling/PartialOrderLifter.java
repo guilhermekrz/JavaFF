@@ -28,6 +28,6 @@
 
 package javaff.scheduling;
 
-public interface PartialOrderLifter 
+public interface PartialOrderLifter
 {
 }

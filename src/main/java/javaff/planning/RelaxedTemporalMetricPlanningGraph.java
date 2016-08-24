@@ -29,28 +29,40 @@
 package javaff.planning;
 
 import javaff.data.temporal.DurativeAction;
+import javaff.data.Fact;
 import javaff.data.GroundProblem;
 import javaff.data.Action;
 import javaff.data.Plan;
+import javaff.data.RelaxedPlan;
 import javaff.data.TotalOrderPlan;
 import javaff.data.strips.Proposition;
 import javaff.data.temporal.StartInstantAction;
 import javaff.data.temporal.DurationFunction;
 import javaff.data.metric.Function;
+import javaff.planning.PlanningGraph.PGAction;
+import javaff.planning.PlanningGraph.PGNoOp;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.List;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.math.BigDecimal;
 
-public class RelaxedTemporalMetricPlanningGraph extends RelaxedMetricPlanningGraph
+public class RelaxedTemporalMetricPlanningGraph extends
+		RelaxedMetricPlanningGraph
 {
 	public RelaxedTemporalMetricPlanningGraph(GroundProblem gp)
-    {
+	{
 		super(gp);
 	}
 	
+	protected RelaxedTemporalMetricPlanningGraph(RelaxedTemporalMetricPlanningGraph tmrpg)
+	{
+		super(tmrpg);
+	}
+	
+	//FIXME add clone() and default constructor
+
 	protected void resetAll(State S)
 	{
 		super.resetAll(S);
@@ -59,22 +71,23 @@ public class RelaxedTemporalMetricPlanningGraph extends RelaxedMetricPlanningGra
 	}
 
 	protected void addEndActionGoals(TemporalMetricState S)
-    {
+	{
 		Iterator dait = S.openActions.iterator();
 		while (dait.hasNext())
 		{
 			DurativeAction da = (DurativeAction) dait.next();
 			Proposition p = da.dummyGoal;
-			goal.add(getProposition(p));
+			goal.add(getPGFact(p));
 		}
-    }
+	}
 
-	public Plan getPlan(State s)// if on the start action is in also add the end action as a matter of course
-    {
-		Plan p = super.getPlan(s);
+	public RelaxedPlan getPlan(State s)// if on the start action is in also add the end
+								// action as a matter of course
+	{
+		RelaxedPlan p = super.getPlan(s);
 		if (p != null)
 		{
-			Set acts = p.getActions();
+			Set acts = new HashSet(p.getActions());
 			Iterator lit = acts.iterator();
 			while (lit.hasNext())
 			{
@@ -82,23 +95,25 @@ public class RelaxedTemporalMetricPlanningGraph extends RelaxedMetricPlanningGra
 				if (a instanceof StartInstantAction)
 				{
 					StartInstantAction sa = (StartInstantAction) a;
-					if (!acts.contains(sa.getSibling())) ((TotalOrderPlan)p).addAction(sa.getSibling());
+					if (!acts.contains(sa.getSibling()))
+						p.addAction(sa.getSibling());
 				}
 			}
 		}
-		
+
 		return p;
 	}
 
 	protected PGFunction makeFunction(Function f)
-    {
+	{
 		PGFunction pgf = super.makeFunction(f);
-		if (pgf == null && f instanceof DurationFunction) pgf = new PGDurationFunction(((DurationFunction)f).durativeAction);
+		if (pgf == null && f instanceof DurationFunction)
+			pgf = new PGDurationFunction(((DurationFunction) f).durativeAction);
 		return pgf;
-	}	
+	}
 
 	protected class PGDurationFunction extends PGNamedFunction
-    {
+	{
 		public DurativeAction durAct;
 
 		public PGDurationFunction(DurativeAction da)

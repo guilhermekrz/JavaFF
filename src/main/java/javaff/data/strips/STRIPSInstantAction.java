@@ -28,7 +28,38 @@
 
 package javaff.data.strips;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+
+import javaff.data.GroundFact;
+import javaff.data.Parameter;
+
 public class STRIPSInstantAction extends InstantAction
 {
-
+	public STRIPSInstantAction()
+	{
+		super();
+	}
+	
+	public STRIPSInstantAction(String name)
+	{
+		super(name);
+	}
+	
+	@Override
+	public Object clone()
+	{
+		STRIPSInstantAction clone = new STRIPSInstantAction();
+		clone.setCondition((GroundFact) super.getCondition().clone());
+		clone.setEffect((GroundFact) super.getEffect().clone());
+		clone.setName((OperatorName) super.getName().clone());
+		clone.setParameters(new ArrayList<Parameter>());
+		for (Parameter p : super.getParameters())
+			clone.getParameters().add((Parameter) p.clone());
+		clone.setCost(new BigDecimal(0).add(super.getCost()));
+		
+		return clone;
+	}
+	
+	
 }

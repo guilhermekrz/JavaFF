@@ -30,7 +30,10 @@ package javaff.data.strips;
 
 import javaff.data.PDDLPrinter;
 import javaff.data.PDDLPrintable;
+import javaff.data.Parameter;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Iterator;
 import java.io.PrintStream;
@@ -40,16 +43,56 @@ public class PredicateSymbol implements PDDLPrintable
 	protected String name;
 	protected boolean staticValue;
 
-	protected List params = new ArrayList(); //The parameters (types) that this predicate symbol takes
+	protected List<Parameter> params;
+	
+	private int hash;
 
 	protected PredicateSymbol()
 	{
+		this.name = "";
+		this.staticValue = false;
+		this.params = new ArrayList<Parameter>();
 		
+		this.hash = this.updateHash();
 	}
 
 	public PredicateSymbol(String pName)
 	{
-		name = pName;
+		this.name = pName;
+		this.staticValue = false;
+		this.params = new ArrayList<Parameter>();
+		
+		this.hash = this.updateHash();
+	}
+	
+	protected int updateHash()
+	{
+		int hash = 31 ^ this.getName().hashCode() ^ this.getParameters().hashCode();
+//		if (this.isStatic()) //breaks things!
+//			hash ^= 37;
+		
+		this.hash = hash;
+		return hash;
+	}
+	
+	public String getName()
+	{
+		return name;
+	}
+
+	public List<Parameter> getParameters()
+	{
+		return Collections.unmodifiableList(this.params);
+	}
+	
+	public Object clone()
+	{
+		PredicateSymbol clone = new PredicateSymbol();
+		clone.name = this.name;
+		clone.params = new ArrayList<Parameter>(this.params);
+		clone.staticValue = this.staticValue;
+		
+		return clone;
 	}
 
 	public String toString()
@@ -60,7 +103,7 @@ public class PredicateSymbol implements PDDLPrintable
 	public String toStringTyped()
 	{
 		String str = name;
-		Iterator it = params.iterator();
+		Iterator<Parameter> it = params.iterator();
 		while (it.hasNext())
 		{
 			Variable v = (Variable) it.next();
@@ -77,29 +120,46 @@ public class PredicateSymbol implements PDDLPrintable
 	public void setStatic(boolean stat)
 	{
 		staticValue = stat;
+		this.updateHash();
+	}
+	
+	public void setName(String name)
+	{
+		this.name = name;
+		this.updateHash();
 	}
 
 	public void addVar(Variable v)
 	{
 		params.add(v);
+		this.updateHash();
+	}
+
+	public boolean removeVar(Variable v)
+	{
+		boolean res = params.remove(v);
+		this.updateHash();
+		return res;
 	}
 
 	public boolean equals(Object obj)
 	{
 		if (obj instanceof PredicateSymbol)
 		{
-			PredicateSymbol ps = (PredicateSymbol) obj;
-			return (name.equals(ps.name) && params.equals(ps.params));
-		}
-		else return false;
+//			PredicateSymbol ps = (PredicateSymbol) obj;
+//			boolean eq = (name.equalsIgnoreCase(ps.name) && params.equals(ps.params));
+			
+			boolean h = this.hashCode() == obj.hashCode();
+//			assert(h == eq);
+			
+			return h;
+		} else
+			return false;
 	}
 
 	public int hashCode()
 	{
-		int hash = 8;
-		hash = 31 * hash ^ name.hashCode();
-		hash = 31 * hash ^ params.hashCode();
-		return hash;
+		return this.hash;
 	}
 
 	public void PDDLPrint(PrintStream p, int indent)

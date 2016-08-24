@@ -1,7 +1,7 @@
 package javaff.parser.parser30;
 
 import javaff.data.UngroundProblem;
-import javaff.data.preference.AndPreference;
+import javaff.data.strips.And;
 import org.junit.Test;
 
 import java.io.File;
@@ -26,8 +26,7 @@ public class PDDL30parserTest {
 	public void testRovers1() {
 		UngroundProblem ungroundProblem = PDDL30parser.parseFiles(new File("pddl/pddl30/rovers/QualitativePreferences/domain.pddl"), new File("pddl/pddl30/rovers/QualitativePreferences/p01.pddl"));
 		assertEquals(9, ungroundProblem.actions.size());
-		AndPreference constraints = ungroundProblem.constraints;
-		assertEquals(19, constraints.getPreferences().size());
+		assertEquals(19, ((And) ungroundProblem.constraints).size());
 	}
 
 	@Test
@@ -36,4 +35,13 @@ public class PDDL30parserTest {
 		assertEquals(9, ungroundProblem.actions.size());
 	}
 
+	@Test
+	public void testRovers1AllConstraints() {
+		UngroundProblem ungroundProblem = PDDL30parser.parseFiles(new File("pddl/pddl30/rovers/QualitativePreferences/domain.pddl"), new File("pddl/pddl30/rovers/QualitativePreferences/p01-allConstraints.pddl"));
+		assertEquals(9, ungroundProblem.actions.size());
+		assertEquals(10, ((And) ungroundProblem.constraints).size());
+	}
+
+	// TODO: add free variable constraints
+	// TODO: ground these free variable constraints
 }

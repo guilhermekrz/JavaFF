@@ -41,6 +41,8 @@ public abstract class Parameter implements PDDLPrintable
 		setName(n);
 		setRootType();
 	}
+	
+	public abstract Object clone();
 
 	public Parameter(String n, Type t)
 	{
@@ -52,7 +54,7 @@ public abstract class Parameter implements PDDLPrintable
 	{
 		name = n;
 	}
-	
+
 	public void setType(Type t)
 	{
 		type = t;
@@ -99,13 +101,14 @@ public abstract class Parameter implements PDDLPrintable
 		if (obj instanceof Parameter)
 		{
 			Parameter po = (Parameter) obj;
-			return (name.equals(po.name) && type.equals(po.type) && this.getClass() == po.getClass());
-		}
-		else return false;
+			return (name.equals(po.name) && type.equals(po.type) && this
+					.getClass() == po.getClass());
+		} else
+			return false;
 	}
 
 	public void PDDLPrint(PrintStream p, int indent)
 	{
-		PDDLPrinter.printToString(this, p, false, false, indent); 
+		PDDLPrinter.printToString(this, p, false, false, indent);
 	}
 }

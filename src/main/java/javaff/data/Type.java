@@ -34,10 +34,14 @@ import java.io.PrintStream;
 public abstract class Type implements PDDLPrintable
 {
 	public static Type rootType = RootType.getInstance();
-	
-	public abstract boolean isOfType(Type t); // is this of type t (i.e. is t it parent or higher up the hierarchy)
+
+	public abstract boolean isOfType(Type t); // is this of type t (i.e. is t
+												// it parent or higher up the
+												// hierarchy)
 
 	public abstract String toStringTyped();
+	
+	public abstract Object clone();
 
 	public void PDDLPrint(PrintStream p, int indent)
 	{

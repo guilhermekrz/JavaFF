@@ -28,11 +28,13 @@
 
 package javaff.planning;
 
-import javaff.data.GroundCondition;
+import javaff.data.GroundFact;
 import javaff.data.TotalOrderPlan;
-import javaff.data.Metric;
+import javaff.data.metric.Metric;
+import javaff.data.metric.MetricType;
 import javaff.data.metric.NamedFunction;
 
+import java.util.HashMap;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Map;
@@ -41,36 +43,41 @@ import java.math.BigDecimal;
 
 public class MetricState extends STRIPSState
 {
-	public Map funcValues; //maps Named Functions onto BigDecimals
+	public Map funcValues; // maps Named Functions onto BigDecimals
 	public Metric metric;
 
 	protected MetricState()
 	{
-		
+		super();
+		this.funcValues = new HashMap(1);
+		this.metric = null;
 	}
 
-	public MetricState(Set a, Set f, GroundCondition g, Map funcs, Metric m)
+	public MetricState(Set a, Set f, GroundFact g, Map funcs, Metric m)
 	{
-		super(a,f,g);
+		super(a, f, g);
 		funcValues = funcs;
 		metric = m;
 	}
 
-	protected MetricState(Set a, Set f, GroundCondition g, Map funcs, TotalOrderPlan p, Metric m)
+	protected MetricState(Set a, Set f, GroundFact g, Map funcs,
+			TotalOrderPlan p, Metric m)
 	{
-		super(a,f,g,p);
+		super(a, f, g, p);
 		funcValues = funcs;
 		metric = m;
 	}
 
 	public Object clone()
 	{
-		Set nf = (Set) ((HashSet) facts).clone();
+		
+		//FIXME this needs to clone the supertype
+		Set nf = (Set) ((HashSet) factsTrue).clone();
 		TotalOrderPlan p = (TotalOrderPlan) plan.clone();
 		Map nfuncs = (Map) ((Hashtable) funcValues).clone();
 		MetricState ms = new MetricState(actions, nf, goal, nfuncs, p, metric);
 		ms.setRPG(RPG);
-//		ms.setFilter(filter);
+		// ms.setFilter(filter);
 		return ms;
 	}
 
@@ -84,7 +91,10 @@ public class MetricState extends STRIPSState
 		funcValues.put(nf, d);
 	}
 
-	// WARNING - not yet implemented  - must be overridden and take account of the metric
+	// WARNING - not yet implemented - must be overridden and take account of
+	// the metric
+	//10/11/12 - dpattiso - Did I write this comment? Seems to make sense. No FF-style bounds checking in place?
+	//not that this is really the place to even be getting H values...
 	public BigDecimal getHValue()
 	{
 		return super.getHValue();
@@ -100,15 +110,15 @@ public class MetricState extends STRIPSState
 		if (obj instanceof MetricState)
 		{
 			MetricState s = (MetricState) obj;
-			return (s.facts.equals(facts) && s.funcValues.equals(funcValues));
-		}
-		else return false;
+			return (s.factsTrue.equals(factsTrue) && s.funcValues.equals(funcValues));
+		} else
+			return false;
 	}
 
 	public int hashCode()
 	{
 		int hash = 8;
-		hash = 31 * hash ^ facts.hashCode();
+		hash = 31 * hash ^ factsTrue.hashCode();
 		hash = 31 * hash ^ funcValues.hashCode();
 		return hash;
 	}

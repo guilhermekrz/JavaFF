@@ -48,14 +48,18 @@ public class OperatorName
 		{
 			OperatorName os = (OperatorName) obj;
 			return (name.equals(os.name));
-		}
-		else return false;
+		} else
+			return false;
 	}
 
 	public int hashCode()
 	{
 		return name.hashCode();
 	}
-
 	
+	public Object clone()
+	{
+		return new OperatorName(this.name);
+	}
+
 }

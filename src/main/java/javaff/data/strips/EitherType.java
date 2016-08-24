@@ -35,11 +35,24 @@ import java.util.Iterator;
 
 public class EitherType extends Type
 {
-	protected Set types = new HashSet();
+	protected Set<SimpleType> types = new HashSet<SimpleType>();
 
 	public void addType(SimpleType t)
 	{
 		types.add(t);
+	}
+	
+	public Object clone()
+	{
+		EitherType clone = new EitherType();
+		
+		for (SimpleType t : this.types)
+		{
+			clone.addType((SimpleType) t.clone());
+		}
+		
+		
+		return clone;
 	}
 
 	public String toString()
@@ -48,7 +61,7 @@ public class EitherType extends Type
 		Iterator tit = types.iterator();
 		while (tit.hasNext())
 		{
-			str+=" " +tit.next();
+			str += " " + tit.next();
 		}
 		str += ")";
 		return str;
@@ -65,19 +78,21 @@ public class EitherType extends Type
 		{
 			EitherType et = (EitherType) obj;
 			return (types.equals(et.types));
-		}
-		else return false;
+		} else
+			return false;
 	}
 
-	public boolean isOfType(Type t) // is this of type t (i.e. is type further up the hierarchy)
+	public boolean isOfType(Type t) // is this of type t (i.e. is type further
+									// up the hierarchy)
 	{
 		Iterator tit = types.iterator();
 		while (tit.hasNext())
 		{
 			SimpleType st = (SimpleType) tit.next();
-			if (st.isOfType(t)) return true;
+			if (st.isOfType(t))
+				return true;
 		}
 		return false;
 	}
-	
+
 }

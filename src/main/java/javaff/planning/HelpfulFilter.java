@@ -29,10 +29,25 @@
 package javaff.planning;
 
 import javaff.data.Action;
+import javaff.data.Fact;
+import javaff.data.Parameter;
+import javaff.data.TotalOrderPlan;
+import javaff.data.metric.NamedFunction;
+import javaff.data.strips.Not;
+import javaff.data.strips.OperatorName;
+import javaff.data.strips.Proposition;
+import javaff.data.strips.STRIPSInstantAction;
 
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 public class HelpfulFilter implements Filter
 {
@@ -44,21 +59,31 @@ public class HelpfulFilter implements Filter
 
 	public static HelpfulFilter getInstance()
 	{
-		if (hf == null) hf = new HelpfulFilter(); // Singleton, as in NullFilter
+		if (hf == null)
+			hf = new HelpfulFilter(); // Singleton, as in NullFilter
 		return hf;
 	}
 
-	public Set getActions(State S)
+	public List<Action> getActions(State S)
 	{
 		STRIPSState SS = (STRIPSState) S;
-		SS.calculateRP(); // get the relaxed plan to the goal, to make sure helpful actions exist for S
-		Set ns = new HashSet();
-		Iterator ait = SS.helpfulActions.iterator(); // iterate over helpful actions
-		while (ait.hasNext())
+		SS.calculateRP(); // get the relaxed plan to the goal, to make sure
+							// helpful actions exist for S
+
+		SortedSet<HelpfulAction> allHelpful = SS.getRPG().getHelpfulActions(); //returned in sorted order!
+		ArrayList<Action> allHelpfulApplicable = new ArrayList<Action>();
+		
+		//most helpful are at the start of the iterator
+		for (Action a : allHelpful)
 		{
-			Action a = (Action) ait.next();
-			if (a.isApplicable(S)) ns.add(a); // and add them to the set to return if they're applicable
+			if (a.isApplicable(SS))
+				allHelpfulApplicable.add(a);
 		}
-		return ns;
+
+		return allHelpfulApplicable;
 	}
-} 
+	
+
+
+
+}

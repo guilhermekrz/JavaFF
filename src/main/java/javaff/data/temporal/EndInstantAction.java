@@ -34,30 +34,39 @@ import javaff.planning.TemporalMetricState;
 import java.util.Set;
 import java.util.Iterator;
 
-public class EndInstantAction extends SplitInstantAction 
+public class EndInstantAction extends SplitInstantAction
 {
 
 	public SplitInstantAction getSibling()
-    {
+	{
 		return parent.startAction;
 	}
 
 	public void applySplit(TemporalMetricState ts)
-    {
-		Set is = parent.invariant.getConditionalPropositions();
-		
+	{
+		Set is = parent.invariant.getFacts();
+
 		Iterator iit = is.iterator();
 		while (iit.hasNext())
 		{
 			ts.invariants.remove(iit.next());
 		}
 		ts.openActions.remove(parent);
-		ts.actions.remove(this);
-		ts.actions.add(getSibling());
+		ts.getActions().remove(this);
+		ts.getActions().add(getSibling());
 	}
 
 	public boolean exclusivelyInvariant(Proposition p)
-    {
-		return !parent.endCondition.getConditionalPropositions().contains(p) || !parent.endEffect.getAddPropositions().contains(p) || !parent.endEffect.getDeletePropositions().contains(p);
+	{
+		return !parent.endCondition.getFacts().contains(p)
+				|| !parent.endEffect.getFacts().contains(p)
+				|| !parent.endEffect.getFacts().contains(p);
+	}
+	
+	@Override
+	public Object clone()
+	{
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
