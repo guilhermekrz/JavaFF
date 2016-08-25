@@ -92,7 +92,7 @@ public class UngroundProblem {
 												// (NamedFunction => BigDecimal)
 	public GroundFact goal = new And();
 
-	private UngroundFact constraints = new And();
+	public Fact constraints = new And();
 
 	public Metric metric;
 	
@@ -397,15 +397,9 @@ public class UngroundProblem {
 		if (UngroundProblem.RemoveStaticFacts) {
 			this.staticify(groundActions);
 		}
-
-		// Constraints
-		GroundFact groundConstraints = new And();
-		for(Fact fact : constraints.getFacts()) {
-
-		}
 		
 		//create the final ground problem
-		GroundProblem rGP = new GroundProblem(groundActions, initial, goal, funcValues, groundConstraints, metric);
+		GroundProblem rGP = new GroundProblem(groundActions, initial, goal, funcValues, constraints, metric);
 		rGP.setName(this.DomainName);//+"_-_"+this.ProblemName;
 		rGP.setRequirements(this.requirements);
 		
@@ -534,19 +528,6 @@ public class UngroundProblem {
 				staticProps.add(p);
 		}
 		initial.removeAll(staticProps);
-	}
-
-	public UngroundFact getConstraints() {
-		return constraints;
-	}
-
-	public void addConstraints(Fact andConstraints) {
-		Set<? extends Fact> facts1 = this.constraints.getFacts();
-		Set<Fact> facts2 = ((And) andConstraints).getFacts();
-		Set<Fact> allFacts = new HashSet<>();
-		allFacts.addAll(facts1);
-		allFacts.addAll(facts2);
-		this.constraints = new And(allFacts);
 	}
 
 	public Object clone()

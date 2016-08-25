@@ -48,7 +48,7 @@ public class GroundProblem implements Cloneable {
 	private String name;
 	private Set<Action> actions = new HashSet<>();
 	private Map<NamedFunction, BigDecimal> functionValues = new Hashtable<>();
-	private GroundFact constraints = new And();
+	private Fact constraints = new And();
 	private Metric metric;
 
 	private GroundFact goal;
@@ -95,7 +95,7 @@ public class GroundProblem implements Cloneable {
 	}
 
 
-	public GroundProblem(Set<Action> a, Set<Fact> i, GroundFact g, Map<NamedFunction, BigDecimal> f, GroundFact constraints, Metric m)
+	public GroundProblem(Set<Action> a, Set<Fact> i, GroundFact g, Map<NamedFunction, BigDecimal> f, Fact constraints, Metric m)
 	{
 		this();
 		
@@ -717,7 +717,7 @@ public class GroundProblem implements Cloneable {
 		return functionValues;
 	}
 
-	public GroundFact getConstraints() {
+	public Fact getConstraints() {
 		return constraints;
 	}
 
