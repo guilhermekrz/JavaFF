@@ -2,7 +2,7 @@
 
 Initial commit from: http://www.inf.kcl.ac.uk/staff/andrew/JavaFF/ - version 1.0.1
 
-However, from commit c6b5ce5b796a0cda71dcbd2d21d83ac18e5db671 onwards, we are using an old ~~obscure~~ code, because it supports more requirements (e.g. "negative-preconditions"). 
+However, from commit [c6b5ce](https://github.com/guilhermekrz/JavaFF/commit/c6b5ce5b796a0cda71dcbd2d21d83ac18e5db671) onwards, we are using an old ~~obscure~~ code, because it supports more requirements (e.g. "negative-preconditions"). 
 
 TODO: Try to find the source of this commit.
 
